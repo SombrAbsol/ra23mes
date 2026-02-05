@@ -13,9 +13,6 @@ void write_u32_le(unsigned char *b, uint32_t v);
 // padding to 4-byte boundary
 uint32_t pad4(uint32_t n);
 
-// strdup implementation
-char *xstrdup(const char *s);
-
 // file helpers
 int file_exists(const char *path);
 int is_json_file(const unsigned char *buf, size_t size);

@@ -33,15 +33,6 @@ int file_exists(const char *path) {
     return stat(path, &st) == 0;
 }
 
-// strdup implementation
-char *xstrdup(const char *s) {
-    if (!s) return NULL;
-    size_t len = strlen(s) + 1;
-    char *p = malloc(len);
-    if (p) memcpy(p, s, len);
-    return p;
-}
-
 // read entire file into memory
 unsigned char *read_file(const char *path, size_t *out_size) {
     FILE *f = NULL;

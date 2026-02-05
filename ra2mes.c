@@ -6,6 +6,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 // convert pokémon ranger 2 mes format (sequential blocks) to json
@@ -30,7 +31,7 @@ int mes_to_json(const char *input, const char *output) {
         off += 4;
         if (off + blk > size) goto error_strings;
 
-        strings[i] = xstrdup((char *)(buf + off));
+        strings[i] = strdup((char *)(buf + off));
         if (!strings[i]) goto error_strings;
 
         off += blk;
@@ -135,12 +136,12 @@ int main(int argc, char **argv) {
     }
 
     if (strcmp(argv[1], "--to-json") == 0) { // mes to json
-        output = outarg ? xstrdup(outarg) : make_output_path(input, ".json");
+        output = outarg ? strdup(outarg) : make_output_path(input, ".json");
         if (!output) return EXIT_FAILURE;
         result = mes_to_json(input, output);
 
     } else if (strcmp(argv[1], "--to-mes") == 0) { // json to mes
-        output = outarg ? xstrdup(outarg) : make_output_path(input, ".mes");
+        output = outarg ? strdup(outarg) : make_output_path(input, ".mes");
         if (!output) return EXIT_FAILURE;
         result = json_to_mes(input, output);
 
