@@ -6,7 +6,6 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 // convert pokémon ranger 2 mes format (sequential blocks) to json
