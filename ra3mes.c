@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // convert pokémon ranger 3 mes format (offset table) to json
 int mes_to_json(const char *input, const char *output) {
     size_t size;
