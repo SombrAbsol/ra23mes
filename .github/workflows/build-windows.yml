@@ -1,0 +1,46 @@
+name: Windows Nightly
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Windows nightly
+    runs-on: windows-2025
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install toolchain
+        run: |
+          choco install -y mingw make
+
+      - name: Build Windows binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          make
+
+      - name: Upload ra2mes Windows build artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ra2mes-windows
+          path: ra2mes.exe
+          if-no-files-found: error
+
+      - name: Upload ra3mes Windows build artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ra3mes-windows
+          path: ra3mes.exe
+          if-no-files-found: error
