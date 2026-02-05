@@ -46,17 +46,18 @@ By default, the output file has the same name as the input file, with the extens
 ## Building
 Dependencies: `clang` or `gcc`, `make` (optional, preferred)
 1. Clone this repository by running `git clone https://github.com/SombrAbsol/ra23mes`, or [download the ZIP archive](https://github.com/SombrAbsol/ra23mes/archive/refs/heads/main.zip) and extract it
-2. Go to the repository directory and build the project. You can run `make` if you have it installed, or the following commands depending on the compiler you have installed.
-### Clang
+2. Go to the repository directory and build the project. You can run `make` if you have it installed, or the following commands depending on your operating system (replace `clang` by `gcc` if needed).
+
+### Linux
 ```
 clang -O3 -Wall -Wextra -Werror -o ra2mes ra2mes.c utils.c
 clang -O3 -Wall -Wextra -Werror -o ra3mes ra3mes.c utils.c
 ```
 
-### GCC
+### Windows
 ```
-gcc -O3 -Wall -Wextra -Werror -o ra2mes ra2mes.c utils.c
-gcc -O3 -Wall -Wextra -Werror -o ra3mes ra3mes.c utils.c
+clang -O3 -Wall -Wextra -Werror -D_CRT_SECURE_NO_WARNINGS -o ra2mes ra2mes.c utils.c
+clang -O3 -Wall -Wextra -Werror -D_CRT_SECURE_NO_WARNINGS -o ra3mes ra3mes.c utils.c
 ```
 
 ## Credits
