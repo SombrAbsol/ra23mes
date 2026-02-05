@@ -3,6 +3,7 @@ CFLAGS := -O3 -Wall -Wextra -Werror
 
 ifeq ($(OS),Windows_NT)
 	EXT := .exe
+	CFLAGS += -D_CRT_SECURE_NO_WARNINGS
 else
 	EXT :=
 endif

@@ -35,8 +35,8 @@
 *.i*86
 *.x86_64
 *.hex
-ra2msg
-ra3msg
+ra2mes
+ra3mes
 
 # Debug files
 *.dSYM/
