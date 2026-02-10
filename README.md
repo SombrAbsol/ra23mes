@@ -43,6 +43,10 @@ By default, the output file has the same name as the input file, with the extens
 * `ra2mes --to-json in.mes out.json` will output the JSON file as `out.json`
 * `ra3mes --to-mes in.json out.mes` will output the MES file as `out.mes`
 
+The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed MES files, which have the `.meslz` extension. ra2mes is therefore able to compress and decompress these files during conversion:
+* `ra2mes --to-json in.meslz`
+* `ra2mes --to-meslz in.json`
+
 ## Building
 Dependencies: `clang` or `gcc`, `make` (optional, preferred)
 1. Clone this repository by running `git clone https://github.com/SombrAbsol/ra23mes`, or [download the ZIP archive](https://github.com/SombrAbsol/ra23mes/archive/refs/heads/main.zip) and extract it
@@ -50,13 +54,13 @@ Dependencies: `clang` or `gcc`, `make` (optional, preferred)
 
 ### Linux
 ```
-clang -O3 -Wall -Wextra -Werror -o ra2mes ra2mes.c utils.c
+clang -O3 -Wall -Wextra -Werror -o ra2mes ra2mes.c utils.c lz10.c
 clang -O3 -Wall -Wextra -Werror -o ra3mes ra3mes.c utils.c
 ```
 
 ### Windows
 ```
-clang -O3 -Wall -Wextra -Werror -D_CRT_SECURE_NO_WARNINGS -o ra2mes ra2mes.c utils.c
+clang -O3 -Wall -Wextra -Werror -D_CRT_SECURE_NO_WARNINGS -o ra2mes ra2mes.c utils.c lz10.c
 clang -O3 -Wall -Wextra -Werror -D_CRT_SECURE_NO_WARNINGS -o ra3mes ra3mes.c utils.c
 ```
 

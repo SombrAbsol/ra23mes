@@ -12,7 +12,7 @@ RA2_TARGET := ra2mes$(EXT)
 RA3_TARGET := ra3mes$(EXT)
 
 COMMON_SRCS := utils.c
-RA2_SRCS := ra2mes.c $(COMMON_SRCS)
+RA2_SRCS := ra2mes.c $(COMMON_SRCS) lz10.c
 RA3_SRCS := ra3mes.c $(COMMON_SRCS)
 
 RA2_OBJS := $(RA2_SRCS:.c=.o)
