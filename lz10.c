@@ -2,8 +2,6 @@
 
 #include "lz10.h"
 #include <stddef.h>
-#include <stdio.h>
-#include <string.h>
 
 // check if mes seems lz10-compressed
 int looks_like_lz10(const uint8_t *buf, size_t size) {
