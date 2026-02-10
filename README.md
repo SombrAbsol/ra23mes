@@ -43,9 +43,9 @@ By default, the output file has the same name as the input file, with the extens
 * `ra2mes --to-json in.mes out.json` will output the JSON file as `out.json`
 * `ra3mes --to-mes in.json out.mes` will output the MES file as `out.mes`
 
-The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed MES files, which have the `.meslz` extension. ra2mes is therefore able to compress and decompress these files during conversion:
-* `ra2mes --to-json in.meslz`
-* `ra2mes --to-meslz in.json`
+The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed MES files, which have the `.meslz` extension. ra2mes is therefore able to (de)compress these files during conversion:
+* `ra2mes --to-json in.meslz` will decompress `in.meslz` and output a JSON file
+* `ra2mes --to-meslz in.json` will compress `in.json` and output a LZ10-compressed MES file
 
 ## Building
 Dependencies: `clang` or `gcc`, `make` (optional, preferred)
