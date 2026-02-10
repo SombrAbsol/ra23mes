@@ -150,6 +150,7 @@ int json_to_mes(const char *input, const char *output) {
     return EXIT_SUCCESS;
 }
 
+// convert json to pokémon ranger 2 mes format + lz10 compression
 int json_to_meslz(const char *input, const char *output) {
     size_t rawSize;
     unsigned char *raw = build_mes_buffer(input, &rawSize);
