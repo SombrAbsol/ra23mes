@@ -118,7 +118,7 @@ char **read_json_strings(const char *path, uint32_t *out_count) {
 
 // write strings as flat json object
 int write_json_strings(const char *output, char *const *strings, uint32_t count) {
-    FILE *f = fopen(output, "w");
+    FILE *f = fopen(output, "wb");
     if (!f) return EXIT_FAILURE;
 
     fputs("{\n", f);
