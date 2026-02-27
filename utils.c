@@ -191,11 +191,31 @@ char *unescape_json_string(const char *start, size_t len) {
 // count json entries from key/values separators
 uint32_t json_count_entries(const char *json) {
     uint32_t count = 0;
-    const char *p = json;
-    while ((p = strstr(p, "\":"))) {
-        count++;
-        p += 2;
+    int in_string = 0;
+    int escape = 0;
+
+    for (const char *p = json; *p; p++) {
+        if (escape) {
+            escape = 0;
+            continue;
+        }
+
+        if (*p == '\\') {
+            escape = 1;
+            continue;
+        }
+
+        if (*p == '"') {
+            in_string = !in_string;
+            continue;
+        }
+
+        // only count ":" outside of strings
+        if (!in_string && p[0] == '"' && p[1] == ':') {
+            count++;
+        }
     }
+
     return count;
 }
 
