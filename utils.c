@@ -27,12 +27,6 @@ uint32_t pad4(uint32_t n) {
     return (4 - (n & 3)) & 3;
 }
 
-// check if input file exists
-int file_exists(const char *path) {
-    struct stat st;
-    return stat(path, &st) == 0;
-}
-
 // strdup implementation
 char *xstrdup(const char *s) {
     if (!s) return NULL;
@@ -40,6 +34,12 @@ char *xstrdup(const char *s) {
     char *p = malloc(len);
     if (p) memcpy(p, s, len);
     return p;
+}
+
+// check if input file exists
+int file_exists(const char *path) {
+    struct stat st;
+    return stat(path, &st) == 0;
 }
 
 // read entire file into memory
@@ -93,6 +93,72 @@ char *make_output_path(const char *input, const char *ext) {
     memcpy(out + dir_len, base, name_len);
     memcpy(out + dir_len + name_len, ext, ext_len + 1);
     return out;
+}
+
+// extract all string values from a flat json object
+char **json_parse_strings(const char *json, uint32_t *out_count) {
+    const char *p = json;
+    uint32_t capacity = 16;
+    uint32_t count = 0;
+
+    char **strings = malloc(capacity * sizeof(char *));
+    if (!strings) return NULL;
+
+    while (*p) {
+        while (isspace((unsigned char)*p)) p++;
+
+        // look for opening quote of key
+        if (*p != '"') {
+            p++;
+            continue;
+        }
+
+        // skip key string
+        p++;
+        while (*p && !(*p == '"' && p[-1] != '\\')) p++;
+        if (!*p) break;
+        p++; // skip closing quote
+
+        while (isspace((unsigned char)*p)) p++;
+        if (*p != ':') continue;
+        p++; // skip colon
+
+        while (isspace((unsigned char)*p)) p++;
+        if (*p != '"') continue;
+        p++; // start of value
+
+        const char *start = p;
+
+        while (*p && !(*p == '"' && p[-1] != '\\')) p++;
+        if (!*p) break;
+
+        size_t len = (size_t)(p - start);
+
+        char *val = unescape_json_string(start, len);
+        if (!val) goto error;
+
+        if (count == capacity) {
+            capacity *= 2;
+            char **tmp = realloc(strings, capacity * sizeof(char *));
+            if (!tmp) {
+                free(val);
+                goto error;
+            }
+            strings = tmp;
+        }
+
+        strings[count++] = val;
+        p++; // skip closing quote
+    }
+
+    if (out_count) *out_count = count;
+    return strings;
+
+    error:
+    for (uint32_t i = 0; i < count; i++)
+        free(strings[i]);
+    free(strings);
+    return NULL;
 }
 
 // load json file and get string values
@@ -186,72 +252,6 @@ char *unescape_json_string(const char *start, size_t len) {
     }
     *d = '\0';
     return out;
-}
-
-// count json entries from key/values separators
-uint32_t json_count_entries(const char *json) {
-    uint32_t count = 0;
-    int in_string = 0;
-    int escape = 0;
-
-    for (const char *p = json; *p; p++) {
-        if (escape) {
-            escape = 0;
-            continue;
-        }
-
-        if (*p == '\\') {
-            escape = 1;
-            continue;
-        }
-
-        if (*p == '"') {
-            in_string = !in_string;
-            continue;
-        }
-
-        // only count ":" outside of strings
-        if (!in_string && p[0] == '"' && p[1] == ':') {
-            count++;
-        }
-    }
-
-    return count;
-}
-
-// extract all string values from a flat json object
-char **json_parse_strings(const char *json, uint32_t *out_count) {
-    uint32_t count = json_count_entries(json);
-    if (out_count) *out_count = count;
-
-
-    char **strings = calloc(count, sizeof(char *));
-    if (!strings) return NULL;
-
-
-    const char *p = json;
-    uint32_t idx = 0;
-    while ((p = strstr(p, "\":")) && idx < count) {
-        p += 2;
-        while (isspace((unsigned char)*p)) p++;
-        if (*p++ != '"') continue;
-
-        // find closing quote and ignore escaped ones
-        const char *start = p;
-        while (*p && !(*p == '"' && p[-1] != '\\')) p++;
-        size_t len = (size_t)(p - start);
-
-
-        strings[idx] = unescape_json_string(start, len);
-        if (!strings[idx]) {
-            for (uint32_t i = 0; i < idx; i++) free(strings[i]);
-            free(strings);
-            return NULL;
-        }
-        idx++;
-        p++;
-    }
-    return strings;
 }
 
 // free string array returned by json helpers
