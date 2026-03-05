@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 #include "lz10.h"
 
 // check if mes seems lz10-compressed

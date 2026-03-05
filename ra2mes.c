@@ -5,12 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "lz10.h"
-#include "utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
+#include "lz10.h"
+#include "utils.h"
 
 // build mes into memory buffer
 static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {

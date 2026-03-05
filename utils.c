@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+
 #include "utils.h"
 
 // read a 32-bit value in little-endian byte order
