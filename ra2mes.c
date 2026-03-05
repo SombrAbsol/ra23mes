@@ -1,5 +1,10 @@
 // Copyright (c) 2026 SombrAbsol
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
 #include "lz10.h"
 #include "utils.h"
 

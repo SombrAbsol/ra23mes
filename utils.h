@@ -5,8 +5,6 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // read/write a 32-bit value in little-endian byte order
 uint32_t read_u32_le(const unsigned char *b);

@@ -28,13 +28,13 @@ $(RA2_TARGET): $(RA2_OBJS)
 $(RA3_TARGET): $(RA3_OBJS)
 	$(CC) -o $@ $^
 
-utils.o: utils.c utils.h
+utils.o: utils.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-ra2mes.o: ra2mes.c utils.h lz10.h
+ra2mes.o: ra2mes.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-ra3mes.o: ra3mes.c utils.h
+ra3mes.o: ra3mes.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:

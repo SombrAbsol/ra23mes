@@ -1,7 +1,9 @@
 // Copyright (c) 2026 SombrAbsol
 
-#include "lz10.h"
 #include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include "lz10.h"
 
 // check if mes seems lz10-compressed
 int looks_like_lz10(const uint8_t *buf, size_t size) {
