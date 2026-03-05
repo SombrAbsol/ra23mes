@@ -2,15 +2,13 @@
 
 #include "lz10.h"
 #include "utils.h"
-#include <stdio.h>
-#include <string.h>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
 // build mes into memory buffer
-unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
+static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
     uint32_t count;
     char **strings = read_json_strings(input, &count);
     if (!strings) return NULL;
@@ -72,7 +70,7 @@ unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
 }
 
 // convert pokémon ranger 2 mes format (sequential blocks) to json
-int mes_to_json(const char *input, const char *output) {
+static int mes_to_json(const char *input, const char *output) {
     size_t size;
     unsigned char *buf  = NULL;
     unsigned char *work = NULL;
@@ -133,7 +131,7 @@ int mes_to_json(const char *input, const char *output) {
 }
 
 // convert json to pokémon ranger 2 mes format
-int json_to_mes(const char *input, const char *output) {
+static int json_to_mes(const char *input, const char *output) {
     size_t size;
     unsigned char *buf = build_mes_buffer(input, &size);
     if (!buf) return EXIT_FAILURE;
@@ -151,7 +149,7 @@ int json_to_mes(const char *input, const char *output) {
 }
 
 // convert json to pokémon ranger 2 mes format + lz10 compression
-int json_to_meslz(const char *input, const char *output) {
+static int json_to_meslz(const char *input, const char *output) {
     size_t rawSize;
     unsigned char *raw = build_mes_buffer(input, &rawSize);
     if (!raw) return EXIT_FAILURE;

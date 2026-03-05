@@ -1,15 +1,13 @@
 // Copyright (c) 2026 SombrAbsol
 
 #include "utils.h"
-#include <stdio.h>
-#include <string.h>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
 // convert pokémon ranger 3 mes format (offset table) to json
-int mes_to_json(const char *input, const char *output) {
+static int mes_to_json(const char *input, const char *output) {
     size_t size;
     unsigned char *buf = read_file(input, &size);
     if (!buf || size < 8) goto error;
@@ -44,7 +42,7 @@ int mes_to_json(const char *input, const char *output) {
 }
 
 // convert json to pokémon ranger 3 mes format
-int json_to_mes(const char *input, const char *output) {
+static int json_to_mes(const char *input, const char *output) {
     uint32_t count;
     char **strings = read_json_strings(input, &count);
     if (!strings) return EXIT_FAILURE;

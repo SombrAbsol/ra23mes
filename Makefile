@@ -31,10 +31,10 @@ $(RA3_TARGET): $(RA3_OBJS)
 utils.o: utils.c utils.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-ra2mes.o: ra2mes.c ra2mes.h utils.h
+ra2mes.o: ra2mes.c utils.h lz10.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-ra3mes.o: ra3mes.c ra3mes.h utils.h
+ra3mes.o: ra3mes.c utils.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
