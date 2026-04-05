@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -35,14 +35,14 @@ jobs:
           make CC=clang
 
       - name: Upload ra2mes Linux build artefact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ra2mes-linux
           path: ra2mes
           if-no-files-found: error
 
       - name: Upload ra3mes Linux build artefact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ra3mes-linux
           path: ra3mes
