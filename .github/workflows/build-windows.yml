@@ -29,18 +29,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          make
+          make \
+            CC="clang --target=x86_64-w64-windows-gnu" \
+            LDFLAGS="-static"
 
       - name: Upload ra2mes Windows build artefact
         uses: actions/upload-artifact@v7
         with:
           name: ra2mes-windows
-          path: ra2mes.exe
+          path: |
+            ra2mes.exe
+            LICENSE
           if-no-files-found: error
 
       - name: Upload ra3mes Windows build artefact
         uses: actions/upload-artifact@v7
         with:
           name: ra3mes-windows
-          path: ra3mes.exe
+          path: |
+            ra3mes.exe
+            LICENSE
           if-no-files-found: error

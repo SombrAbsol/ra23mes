@@ -38,12 +38,16 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ra2mes-linux
-          path: ra2mes
+          path: |
+            ra2mes
+            LICENSE
           if-no-files-found: error
 
       - name: Upload ra3mes Linux build artefact
         uses: actions/upload-artifact@v7
         with:
           name: ra3mes-linux
-          path: ra3mes
+          path: |
+            ra3mes
+            LICENSE
           if-no-files-found: error
