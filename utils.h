@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+// use fopen or fopen_s
+FILE *xfopen(const char *path, const char *mode);
+
 // read/write a 32-bit value in little-endian byte order
 uint32_t read_u32_le(const unsigned char *b);
 void write_u32_le(unsigned char *b, uint32_t v);

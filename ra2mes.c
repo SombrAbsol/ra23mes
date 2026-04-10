@@ -142,7 +142,7 @@ static int json_to_mes(const char *input, const char *output) {
     unsigned char *buf = build_mes_buffer(input, &size);
     if (!buf) return EXIT_FAILURE;
 
-    FILE *f = fopen(output, "wb");
+    FILE *f = xfopen(output, "wb");
     if (!f) {
         free(buf);
         return EXIT_FAILURE;
@@ -166,7 +166,7 @@ static int json_to_meslz(const char *input, const char *output) {
 
     if (!cmp) return EXIT_FAILURE;
 
-    FILE *f = fopen(output, "wb");
+    FILE *f = xfopen(output, "wb");
     if (!f) {
         free(cmp);
         return EXIT_FAILURE;

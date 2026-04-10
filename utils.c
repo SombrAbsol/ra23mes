@@ -9,6 +9,16 @@
 
 #include "utils.h"
 
+// use fopen or fopen_s
+FILE *xfopen(const char *path, const char *mode) {
+    #ifdef _WIN32
+    FILE *f = NULL;
+    return (fopen_s(&f, path, mode) == 0) ? f : NULL;
+    #else
+    return fopen(path, mode);
+    #endif
+}
+
 // read a 32-bit value in little-endian byte order
 uint32_t read_u32_le(const unsigned char *b) {
     return (uint32_t)b[0]
@@ -50,7 +60,7 @@ unsigned char *read_file(const char *path, size_t *out_size) {
     FILE *f = NULL;
     unsigned char *buf = NULL;
 
-    f = fopen(path, "rb");
+    f = xfopen(path, "rb");
     if (!f) return NULL;
 
     // get file size
@@ -187,7 +197,7 @@ char **read_json_strings(const char *path, uint32_t *out_count) {
 
 // write strings as flat json object
 int write_json_strings(const char *output, char *const *strings, uint32_t count) {
-    FILE *f = fopen(output, "wb");
+    FILE *f = xfopen(output, "wb");
     if (!f) return EXIT_FAILURE;
 
     fputs("{\n", f);

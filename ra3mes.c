@@ -67,7 +67,7 @@ static int json_to_mes(const char *input, const char *output) {
         cur += len + pad4(len);
     }
 
-    FILE *f = fopen(output, "wb");
+    FILE *f = xfopen(output, "wb");
     if (!f) goto error;
 
     unsigned char b[4];
