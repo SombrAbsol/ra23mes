@@ -3,7 +3,6 @@ CFLAGS := -O3 -Wall -Wextra -Werror
 
 ifeq ($(OS),Windows_NT)
 	EXT := .exe
-	CFLAGS += -D_CRT_SECURE_NO_WARNINGS
 else
 	EXT :=
 endif
@@ -28,13 +27,7 @@ $(RA2_TARGET): $(RA2_OBJS)
 $(RA3_TARGET): $(RA3_OBJS)
 	$(CC) -o $@ $^
 
-utils.o: utils.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-ra2mes.o: ra2mes.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-ra3mes.o: ra3mes.c
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:

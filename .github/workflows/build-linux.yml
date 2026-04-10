@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+env:
+  TARGET-RA2: ra2mes
+  TARGET-RA3: ra3mes
+
 jobs:
   build:
     name: Build Linux nightly
@@ -18,8 +22,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
 
       - name: Install toolchain
         run: |
@@ -34,20 +36,20 @@ jobs:
           set -euo pipefail
           make CC=clang
 
-      - name: Upload ra2mes Linux build artefact
+      - name: Upload ${{ env.TARGET-RA2 }} Linux build artefact
         uses: actions/upload-artifact@v7
         with:
-          name: ra2mes-linux
+          name: ${{ env.TARGET-RA2 }}-linux
           path: |
-            ra2mes
+            ${{ env.TARGET-RA2 }}
             LICENSE
           if-no-files-found: error
 
-      - name: Upload ra3mes Linux build artefact
+      - name: Upload ${{ env.TARGET-RA3 }} Linux build artefact
         uses: actions/upload-artifact@v7
         with:
-          name: ra3mes-linux
+          name: ${{ env.TARGET-RA3 }}-linux
           path: |
-            ra3mes
+            ${{ env.TARGET-RA3 }}
             LICENSE
           if-no-files-found: error

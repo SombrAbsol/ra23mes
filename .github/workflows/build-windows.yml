@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+env:
+  TARGET-RA2: ra2mes
+  TARGET-RA3: ra3mes
+
 jobs:
   build:
     name: Build Windows nightly
@@ -18,35 +22,27 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-
-      - name: Install toolchain
-        run: |
-          choco install -y mingw make
 
       - name: Build Windows binaries
         shell: bash
         run: |
           set -euo pipefail
-          make \
-            CC="clang --target=x86_64-w64-windows-gnu" \
-            LDFLAGS="-static"
+          make CC=clang
 
-      - name: Upload ra2mes Windows build artefact
+      - name: Upload ${{ env.TARGET-RA2 }} Windows build artefact
         uses: actions/upload-artifact@v7
         with:
-          name: ra2mes-windows
+          name: ${{ env.TARGET-RA2 }}-windows
           path: |
-            ra2mes.exe
+            ${{ env.TARGET-RA2 }}.exe
             LICENSE
           if-no-files-found: error
 
-      - name: Upload ra3mes Windows build artefact
+      - name: Upload ${{ env.TARGET-RA3 }} Windows build artefact
         uses: actions/upload-artifact@v7
         with:
-          name: ra3mes-windows
+          name: ${{ env.TARGET-RA3 }}-windows
           path: |
-            ra3mes.exe
+            ${{ env.TARGET-RA3 }}.exe
             LICENSE
           if-no-files-found: error
