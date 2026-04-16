@@ -54,7 +54,7 @@ The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed
 Dependencies: `clang` or `gcc`, and `make`
 1. If you don't already have them, install the dependencies
 2. Clone this repository by running `git clone https://github.com/SombrAbsol/ra23mes`, or [download the ZIP archive](https://github.com/SombrAbsol/ra23mes/archive/refs/heads/main.zip) and extract it
-3. Go to the repository directory and build the executables by running `make`
+3. Go to the repository directory and build the executables by running `make`. You can also run `make ra2mes` to only build ra2mes, or `make ra3mes` to only build ra3mes
 
 ## Credits
 ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol).
