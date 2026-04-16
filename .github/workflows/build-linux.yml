@@ -41,7 +41,7 @@ jobs:
         with:
           name: ${{ env.TARGET-RA2 }}-linux
           path: |
-            ${{ env.TARGET-RA2 }}
+            build/${{ env.TARGET-RA2 }}
             LICENSE
           if-no-files-found: error
 
@@ -50,6 +50,6 @@ jobs:
         with:
           name: ${{ env.TARGET-RA3 }}-linux
           path: |
-            ${{ env.TARGET-RA3 }}
+            build/${{ env.TARGET-RA3 }}
             LICENSE
           if-no-files-found: error

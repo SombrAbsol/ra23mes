@@ -1,34 +1,41 @@
 CC := $(shell command -v clang >/dev/null 2>&1 && echo clang || echo gcc)
 CFLAGS := -O3 -Wall -Wextra -Werror
+SRC_DIR := src
+BUILD_DIR := build
 
-ifeq ($(OS),Windows_NT)
-	EXT := .exe
-else
-	EXT :=
-endif
+TARGET_NAMES := ra2mes ra3mes
+EXTENSION := $(if $(filter Windows_NT,$(OS)),.exe)
 
-RA2_TARGET := ra2mes$(EXT)
-RA3_TARGET := ra3mes$(EXT)
-
-COMMON_SRCS := utils.c
-RA2_SRCS := ra2mes.c $(COMMON_SRCS) lz10.c
-RA3_SRCS := ra3mes.c $(COMMON_SRCS)
-
-RA2_OBJS := $(RA2_SRCS:.c=.o)
-RA3_OBJS := $(RA3_SRCS:.c=.o)
+COMMON_SRCS := $(wildcard $(SRC_DIR)/common/*.c)
+COMMON_OBJS := $(patsubst $(SRC_DIR)/common/%.c,$(BUILD_DIR)/common.dir/%.o,$(COMMON_SRCS))
 
 .PHONY: all clean
 
-all: $(RA2_TARGET) $(RA3_TARGET)
+all: $(addprefix $(BUILD_DIR)/,$(addsuffix $(EXTENSION),$(TARGET_NAMES)))
 
-$(RA2_TARGET): $(RA2_OBJS)
-	$(CC) -o $@ $^
+define RULES
+$(1): $(BUILD_DIR)/$(1)$(EXTENSION)
 
-$(RA3_TARGET): $(RA3_OBJS)
-	$(CC) -o $@ $^
+$(BUILD_DIR)/$(1)$(EXTENSION): $(patsubst $(SRC_DIR)/$(1)/%.c,$(BUILD_DIR)/$(1).dir/%.o,$(wildcard $(SRC_DIR)/$(1)/*.c)) $(COMMON_OBJS) | $(BUILD_DIR)
+	$(CC) -o $$@ $$^
 
-%.o: %.c
+$(BUILD_DIR)/$(1).dir/%.o: $(SRC_DIR)/$(1)/%.c | $(BUILD_DIR)/$(1).dir
+	$(CC) $(CFLAGS) -c $$< -o $$@
+
+$(BUILD_DIR)/$(1).dir:
+	mkdir -p $$@
+endef
+
+$(foreach t,$(TARGET_NAMES),$(eval $(call RULES,$(t))))
+
+$(BUILD_DIR)/common.dir/%.o: $(SRC_DIR)/common/%.c | $(BUILD_DIR)/common.dir
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD_DIR)/common.dir:
+	mkdir -p $@
+
+$(BUILD_DIR):
+	mkdir -p $@
+
 clean:
-	$(RM) $(RA2_OBJS) $(RA3_OBJS) $(RA2_TARGET) $(RA3_TARGET)
+	rm -rf $(BUILD_DIR)

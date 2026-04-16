@@ -7,7 +7,7 @@ MES text file converters for *Pokémon Ranger: Shadows of Almia* and *Pokémon R
 
 MES files are used to store texts in these two games. *Pokémon Ranger: Shadows of Almia* is the first game to use it, while *Pokémon Ranger: Guardian Signs* use a revised specification of this format, with different text storage and control characters.
 
-For more information on the MES format, see [the documentation](/doc/mes.md).
+For more information on the MES format, see [the documentation](/docs/mes.md).
 
 ## Download
 |         | Linux | Windows |
@@ -34,7 +34,10 @@ Go to your output directory. MES files location is different depending of the ga
 * *Pokémon Ranger: Guardian Signs*: inside the `data_localize` ACF archives in the `data` directory. These are the first 275 (277 in the USA Kiosk Demo) files in the archives, by default with the extension `.bin`. You will need [acftool](https://github.com/SombrAbsol/acftool) to extract them
 
 ### Running ra2mes and ra3mes
-Please use ra2mes for *Pokémon Ranger: Shadows of Almia*'s MES files only, and ra3mes for *Pokémon Ranger: Guardian Signs*' MES files only.
+> [!IMPORTANT]
+> ra2mes and ra3mes are command-line programs and must be run in a terminal.
+>
+> Please use ra2mes for *Pokémon Ranger: Shadows of Almia*'s MES files only, and ra3mes for *Pokémon Ranger: Guardian Signs*' MES files only.
 
 * To convert a MES file to a JSON file, run `ra2mes --to-json in.mes` or `ra3mes --to-json in.mes`
 * To convert a JSON file to a MES file, run `ra2mes --to-mes in.json` or `ra3mes --to-mes in.json`
@@ -48,21 +51,10 @@ The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed
 * `ra2mes --to-meslz in.json` will compress `in.json` and output an LZ10-compressed MES file
 
 ## Building
-Dependencies: `clang` or `gcc`, `make` (optional, preferred)
-1. Clone this repository by running `git clone https://github.com/SombrAbsol/ra23mes`, or [download the ZIP archive](https://github.com/SombrAbsol/ra23mes/archive/refs/heads/main.zip) and extract it
-2. Go to the repository directory and build the project. You can run `make` if you have it installed, or the following commands depending on your operating system (replace `clang` by `gcc` if needed).
-
-### Linux
-```
-clang -O3 -Wall -Wextra -Werror -o ra2mes ra2mes.c utils.c lz10.c
-clang -O3 -Wall -Wextra -Werror -o ra3mes ra3mes.c utils.c
-```
-
-### Windows
-```
-clang -O3 -Wall -Wextra -Werror -D_CRT_SECURE_NO_WARNINGS -o ra2mes ra2mes.c utils.c lz10.c
-clang -O3 -Wall -Wextra -Werror -D_CRT_SECURE_NO_WARNINGS -o ra3mes ra3mes.c utils.c
-```
+Dependencies: `clang` or `gcc`, and `make`
+1. If you don't already have them, install the dependencies
+2. Clone this repository by running `git clone https://github.com/SombrAbsol/ra23mes`, or [download the ZIP archive](https://github.com/SombrAbsol/ra23mes/archive/refs/heads/main.zip) and extract it
+3. Go to the repository directory and build the executables by running `make`
 
 ## Credits
 ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol).

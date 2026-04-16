@@ -34,7 +34,7 @@ jobs:
         with:
           name: ${{ env.TARGET-RA2 }}-windows
           path: |
-            ${{ env.TARGET-RA2 }}.exe
+            build/${{ env.TARGET-RA2 }}.exe
             LICENSE
           if-no-files-found: error
 
@@ -43,6 +43,6 @@ jobs:
         with:
           name: ${{ env.TARGET-RA3 }}-windows
           path: |
-            ${{ env.TARGET-RA3 }}.exe
+            build/${{ env.TARGET-RA3 }}.exe
             LICENSE
           if-no-files-found: error
