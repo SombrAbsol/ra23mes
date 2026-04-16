@@ -1,3 +1,6 @@
+# Build folder
+build/
+
 # Prerequisites
 *.d
 
@@ -35,8 +38,6 @@
 *.i*86
 *.x86_64
 *.hex
-ra2mes
-ra3mes
 
 # Debug files
 *.dSYM/
