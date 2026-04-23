@@ -1,4 +1,8 @@
-// Copyright (c) 2026 SombrAbsol
+// SPDX-License-Identifier: MIT
+/*
+ * LZ10 compression handler.
+ * Copyright (c) 2026 SombrAbsol
+ */
 
 #include <stddef.h>
 #include <stdint.h>
@@ -6,7 +10,10 @@
 
 #include "lz10.h"
 
-// check if mes seems lz10-compressed
+/*
+ * Perform an heuristic check to determine if a buffer resembles
+ * LZ10-compressed data. This is not a full validation.
+ */
 int looks_like_lz10(const uint8_t *buf, size_t size) {
     if (!buf || size < 4)
         return 0;
@@ -14,6 +21,7 @@ int looks_like_lz10(const uint8_t *buf, size_t size) {
     if (buf[0] != 0x10)
         return 0;
 
+    // 24-bit little-endian decompressed size
     uint32_t decSize =
     (uint32_t)buf[1] |
     ((uint32_t)buf[2] << 8) |
@@ -22,67 +30,107 @@ int looks_like_lz10(const uint8_t *buf, size_t size) {
     return decSize > 0;
 }
 
-// lz10 decompression
+/*
+ * Decompress an LZ10 buffer.
+ */
 uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
-    if (!src || srcSize < 4 || !outSize) return NULL; // invalid input
+    if (!src || srcSize < 4 || !outSize)
+        return NULL;
 
+    // check compression method
     uint8_t method = src[0];
-    if (method != 0x10) return NULL; // check compression type
+    if (method != 0x10)
+        return NULL;
 
-    // read decompressed size from header
-    uint32_t decSize = (uint32_t)src[1] | ((uint32_t)src[2] << 8) | ((uint32_t)src[3] << 16);
-    if (decSize == 0) return NULL;
+    // read decompressed size (24-bit LE)
+    uint32_t decSize =
+    (uint32_t)src[1] |
+    ((uint32_t)src[2] << 8) |
+    ((uint32_t)src[3] << 16);
 
-    uint8_t *dst = malloc(decSize); // allocate output buffer
-    if (!dst) return NULL;
+    if (decSize == 0)
+        return NULL;
 
-    const uint8_t *sp = src + 4;
-    const uint8_t *send = src + srcSize;
-    uint8_t *dp = dst;
-    uint8_t *dend = dst + decSize;
+    uint8_t *dst = malloc(decSize);
+    if (!dst)
+        return NULL;
 
-    // main decompression loop
+    const uint8_t *sp = src + 4;         // source pointer
+    const uint8_t *send = src + srcSize; // source end
+    uint8_t *dp = dst;                   // destination pointer
+    uint8_t *dend = dst + decSize;       // destination end
+
+    // process flag groups
     while (dp < dend && sp < send) {
         uint8_t flags = *sp++;
+
+        // process 8 symbols (MSB first)
         for (int bit = 0; bit < 8 && dp < dend; ++bit) {
-            if ((flags & 0x80) == 0) { // literal byte
+            if ((flags & 0x80) == 0) {
+                // literal byte
                 if (sp >= send) { free(dst); return NULL; }
                 *dp++ = *sp++;
-            } else { // compressed block
+            } else {
+                // compressed block (back-reference)
                 if (sp + 1 >= send) { free(dst); return NULL; }
+
                 uint8_t b1 = *sp++;
                 uint8_t b2 = *sp++;
-                int length = (b1 >> 4) + 3; // length of copy
-                size_t disp = (size_t)((((b1 & 0x0F) << 8) | b2) + 1); // displacement
 
-                if ((size_t)(dp - dst) < disp) { free(dst); return NULL; }
+                // upper 4 bits: length (stored as len-3)
+                int length = (b1 >> 4) + 3;
+
+                // lower 12 bits: displacement (stored as disp-1)
+                size_t disp = (size_t)((((b1 & 0x0F) << 8) | b2) + 1);
+
+                // validate back-reference
+                if ((size_t)(dp - dst) < disp) {
+                    free(dst);
+                    return NULL;
+                }
 
                 uint8_t *src_copy = dp - disp;
+
+                // copy referenced bytes (overlap allowed)
                 for (int k = 0; k < length && dp < dend; ++k) {
                     *dp++ = *src_copy++;
                 }
             }
+
             flags <<= 1;
         }
     }
 
-    if (dp != dend) { free(dst); return NULL; }
+    // ensure exact output size was produced
+    if (dp != dend) {
+        free(dst);
+        return NULL;
+    }
+
     *outSize = decSize;
     return dst;
 }
 
-// lz10 compression
+/*
+ * Compress a buffer using an LZ10 encoder. Use a greedy longest-match search
+ * within a sliding window of up to 0x1000 bytes, with a maximum match length
+ * of 0x12 bytes.
+ */
 uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
     if (!src || !outSize)
         return NULL;
 
-    // worst-case size
+    /*
+     * Worst-case size: 4 bytes for the header, plus the full source size if
+     * all data is emitted as literals, plus one flag byte for every 8 symbols.
+     */
     size_t maxSize = 4 + srcSize + ((srcSize + 7) >> 3);
+
     uint8_t *out = calloc(maxSize, 1);
     if (!out)
         return NULL;
 
-    // header: 0x10 + 24-bit raw size
+    // write header
     out[0] = 0x10;
     out[1] = (uint8_t)(srcSize & 0xFF);
     out[2] = (uint8_t)((srcSize >> 8) & 0xFF);
@@ -92,28 +140,31 @@ uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
     const uint8_t *rawEnd = src + srcSize;
     uint8_t *pak = out + 4;
 
-    uint8_t *flagp = NULL;
-    uint8_t mask = 0;
+    uint8_t *flagp = NULL; // pointer to current flag byte
+    uint8_t mask = 0;      // current bit mask
 
     while (raw < rawEnd) {
-        // start a new flag byte every 8 symbols
+        // start a new flag byte every 8 items
         if (!(mask >>= 1)) {
             flagp = pak++;
             *flagp = 0;
             mask = 0x80;
         }
 
-        size_t bestLen = 2;
+        size_t bestLen = 2; // minimum match threshold
         size_t bestPos = 0;
 
+        // search window size (max 0x1000 bytes back)
         size_t maxPos = (size_t)(raw - src);
         if (maxPos > 0x1000)
             maxPos = 0x1000;
 
+        // maximum match length
         size_t maxLen = (size_t)(rawEnd - raw);
         if (maxLen > 0x12)
             maxLen = 0x12;
 
+        // brute-force search for longest match
         for (size_t p = maxPos; p > 1; --p) {
             if (raw[0] != raw[-(ptrdiff_t)p])
                 continue;
@@ -131,16 +182,18 @@ uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
             if (l > bestLen) {
                 bestLen = l;
                 bestPos = p;
+
+                // early exit if max match reached
                 if (l == maxLen)
                     break;
             }
         }
 
         if (bestLen > 2) {
-            // compressed block
+            // encode compressed block
             *flagp |= mask;
 
-            size_t lenField = bestLen - (2 + 1);
+            size_t lenField = bestLen - 3;
             size_t posField = bestPos - 1;
 
             *pak++ = (uint8_t)((lenField << 4) | (posField >> 8));
@@ -148,7 +201,8 @@ uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
 
             raw += bestLen;
         } else {
-            *pak++ = *raw++; // literal byte
+            // literal byte
+            *pak++ = *raw++;
         }
     }
 
