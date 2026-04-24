@@ -19,14 +19,12 @@
 int looks_like_lz10(const uint8_t *buf, size_t size) {
     if (!buf || size < 4)
         return 0;
-
     if (buf[0] != 0x10)
         return 0;
 
     // 24-bit little-endian decompressed size
     uint32_t decSize =
         (uint32_t)buf[1] | ((uint32_t)buf[2] << 8) | ((uint32_t)buf[3] << 16);
-
     return decSize > 0;
 }
 
@@ -169,7 +167,7 @@ uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
             maxLen = 0x12;
 
         // brute-force search for longest match
-        for (size_t p = maxPos; p > 1; --p) {
+        for (size_t p = maxPos; p >= 1; --p) {
             if (raw[0] != raw[-(ptrdiff_t)p])
                 continue;
 

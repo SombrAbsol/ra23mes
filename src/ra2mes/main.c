@@ -302,11 +302,6 @@ int main(int argc, char **argv) {
     const char *input = argv[2];
     const char *outarg = (argc == 4) ? argv[3] : NULL;
 
-    if (!file_exists(input)) {
-        fprintf(stderr, "Invalid path: '%s'\n", input);
-        return EXIT_FAILURE;
-    }
-
     if (strcmp(argv[1], "--to-json") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".json");
         if (!output)

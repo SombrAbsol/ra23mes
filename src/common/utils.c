@@ -171,8 +171,17 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
 
         // skip key
         p++;
-        while (*p && !(*p == '"' && p[-1] != '\\'))
+        int escaped = 0;
+        while (*p) {
+            if (escaped) {
+                escaped = 0;
+            } else if (*p == '\\') {
+                escaped = 1;
+            } else if (*p == '"') {
+                break;
+            }
             p++;
+        }
         if (!*p)
             break;
         p++;
@@ -192,8 +201,17 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
         const char *start = p;
 
         // read value string
-        while (*p && !(*p == '"' && p[-1] != '\\'))
+        escaped = 0;
+        while (*p) {
+            if (escaped) {
+                escaped = 0;
+            } else if (*p == '\\') {
+                escaped = 1;
+            } else if (*p == '"') {
+                break;
+            }
             p++;
+        }
         if (!*p)
             break;
 
@@ -265,6 +283,21 @@ int write_json_strings(const char *output, char *const *strings,
 
     fputs("{\n", f);
 
+    // compute required zero-padding width
+    uint32_t max_index = (count > 0) ? (count - 1) : 0;
+    unsigned int width = 1;
+    while (max_index >= 10) {
+        max_index /= 10;
+        width++;
+    }
+
+    /*
+     * MES files in vanilla games never contain more than 999 strings, so we
+     * clamp the padding to a minimum of 3 digits for consistency.
+     */
+    if (width < 3)
+        width = 3;
+
     for (uint32_t i = 0; i < count; i++) {
         char *esc = escape_json_string(strings[i], strlen(strings[i]));
         if (!esc) {
@@ -272,7 +305,7 @@ int write_json_strings(const char *output, char *const *strings,
             return EXIT_FAILURE;
         }
 
-        fprintf(f, "  \"%03u\": \"%s\"%s\n", i, esc,
+        fprintf(f, "  \"%0*u\": \"%s\"%s\n", width, i, esc,
                 (i + 1 < count) ? "," : "");
 
         free(esc);
@@ -287,14 +320,14 @@ int write_json_strings(const char *output, char *const *strings,
 /*
  * Escape a set of characters for JSON output.
  */
-char *escape_json_string(const char *s, size_t maxlen) {
-    char *esc = malloc(maxlen * 2 + 1); // worst case
+char *escape_json_string(const char *s, size_t len) {
+    char *esc = malloc(len * 2 + 1); // worst case
     if (!esc)
         return NULL;
 
     char *d = esc;
 
-    for (size_t i = 0; i < maxlen && s[i]; i++) {
+    for (size_t i = 0; i < len && s[i]; i++) {
         unsigned char c = (unsigned char)s[i];
 
         if (c == '"' || c == '\\') {
