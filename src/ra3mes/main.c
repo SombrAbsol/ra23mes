@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
 /*
  * Text converter for Pokémon Ranger: Guardian Signs.
- * Copyright (c) 2026 SombrAbsol
  */
 
 #include <stdint.h>
@@ -21,10 +21,11 @@
 static int mes_to_json(const char *input, const char *output) {
     size_t size;
     unsigned char *buf = read_file(input, &size);
-    if (!buf || size < 8) goto error;
+    if (!buf || size < 8)
+        goto error;
 
     uint32_t file_size = read_u32_le(buf);
-    uint32_t count     = read_u32_le(buf + 4);
+    uint32_t count = read_u32_le(buf + 4);
 
     /*
      * Validate that the file size matches the header and that the offset table
@@ -34,7 +35,8 @@ static int mes_to_json(const char *input, const char *output) {
         goto error;
 
     char **strings = calloc(count, sizeof(char *));
-    if (!strings) goto error;
+    if (!strings)
+        goto error;
 
     // read each string via offset table
     for (uint32_t i = 0; i < count; i++) {
@@ -56,9 +58,9 @@ static int mes_to_json(const char *input, const char *output) {
     free(buf);
     return res;
 
-    error_strings:
+error_strings:
     free_string_array(strings, count);
-    error:
+error:
     free(buf);
     return EXIT_FAILURE;
 }
@@ -69,11 +71,13 @@ static int mes_to_json(const char *input, const char *output) {
 static int json_to_mes(const char *input, const char *output) {
     uint32_t count;
     char **strings = read_json_strings(input, &count);
-    if (!strings) return EXIT_FAILURE;
+    if (!strings)
+        return EXIT_FAILURE;
 
     // allocate offset table
     uint32_t *offsets = malloc(count * sizeof(uint32_t));
-    if (!offsets) goto error;
+    if (!offsets)
+        goto error;
 
     /*
      * Layout: 8-byte header + offset table containing count * 4 bytes,
@@ -91,13 +95,16 @@ static int json_to_mes(const char *input, const char *output) {
     }
 
     FILE *f = xfopen(output, "wb");
-    if (!f) goto error;
+    if (!f)
+        goto error;
 
     unsigned char b[4];
 
     // write header
-    write_u32_le(b, cur);   fwrite(b, 1, 4, f); // total file size
-    write_u32_le(b, count); fwrite(b, 1, 4, f); // string count
+    write_u32_le(b, cur);
+    fwrite(b, 1, 4, f); // total file size
+    write_u32_le(b, count);
+    fwrite(b, 1, 4, f); // string count
 
     // write offset table
     for (uint32_t i = 0; i < count; i++) {
@@ -124,7 +131,7 @@ static int json_to_mes(const char *input, const char *output) {
     free_string_array(strings, count);
     return EXIT_SUCCESS;
 
-    error:
+error:
     free(offsets);
     free_string_array(strings, count);
     return EXIT_FAILURE;
@@ -134,13 +141,14 @@ static int json_to_mes(const char *input, const char *output) {
  * Command-line interface.
  */
 int main(int argc, char **argv) {
-    #ifdef _WIN32
+#ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8); // ensure UTF-8 output on Windows
-    #endif
+#endif
 
     // help
     if (argc >= 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h"))) {
-        printf("ra3mes - MES text file converter for Pokémon Ranger: Guardian Signs\n");
+        printf("ra3mes - MES text file converter for Pokémon Ranger: Guardian "
+               "Signs\n");
         printf("Copyright (c) 2026 SombrAbsol\n\n");
         printf("Usage:\n");
         printf("  %s --to-json <in.mes>  [out.json]\n", argv[0]);
@@ -163,7 +171,7 @@ int main(int argc, char **argv) {
     char *output = NULL;
     int result = EXIT_FAILURE;
 
-    const char *input  = argv[2];
+    const char *input = argv[2];
     const char *outarg = (argc == 4) ? argv[3] : NULL;
 
     if (!file_exists(input)) {
@@ -173,12 +181,14 @@ int main(int argc, char **argv) {
 
     if (strcmp(argv[1], "--to-json") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".json");
-        if (!output) return EXIT_FAILURE;
+        if (!output)
+            return EXIT_FAILURE;
         result = mes_to_json(input, output);
 
     } else if (strcmp(argv[1], "--to-mes") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".mes");
-        if (!output) return EXIT_FAILURE;
+        if (!output)
+            return EXIT_FAILURE;
         result = json_to_mes(input, output);
 
     } else {

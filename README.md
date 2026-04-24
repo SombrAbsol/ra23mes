@@ -61,3 +61,5 @@ ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol).
 
 ## License
 ra2mes and ra3mes are free softwares. You can redistribute them and/or modify them under the [terms of the Expat License](/LICENSE) as published by the Massachusetts Institute of Technology.
+
+`SPDX-License-Identifier: MIT`<br>`SPDX-FileCopyrightText: Copyright 2026 SombrAbsol`

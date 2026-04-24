@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
 /*
  * Utility functions.
- * Copyright (c) 2026 SombrAbsol
  */
 
 #include <ctype.h>
@@ -18,22 +18,20 @@
  * On Windows, uses fopen_s for parameter handling.
  */
 FILE *xfopen(const char *path, const char *mode) {
-    #ifdef _WIN32
+#ifdef _WIN32
     FILE *f = NULL;
     return (fopen_s(&f, path, mode) == 0) ? f : NULL;
-    #else
+#else
     return fopen(path, mode);
-    #endif
+#endif
 }
 
 /*
  * Read a 32-bit unsigned integer from a byte buffer in little-endian order.
  */
 uint32_t read_u32_le(const unsigned char *b) {
-    return (uint32_t)b[0]
-    | ((uint32_t)b[1] << 8)
-    | ((uint32_t)b[2] << 16)
-    | ((uint32_t)b[3] << 24);
+    return (uint32_t)b[0] | ((uint32_t)b[1] << 8) | ((uint32_t)b[2] << 16) |
+           ((uint32_t)b[3] << 24);
 }
 
 /*
@@ -58,11 +56,13 @@ uint32_t pad4(uint32_t n) {
  * strdup replacement using malloc.
  */
 char *xstrdup(const char *s) {
-    if (!s) return NULL;
+    if (!s)
+        return NULL;
 
     size_t len = strlen(s) + 1;
     char *p = malloc(len);
-    if (p) memcpy(p, s, len);
+    if (p)
+        memcpy(p, s, len);
 
     return p;
 }
@@ -83,27 +83,34 @@ unsigned char *read_file(const char *path, size_t *out_size) {
     unsigned char *buf = NULL;
 
     f = xfopen(path, "rb");
-    if (!f) return NULL;
+    if (!f)
+        return NULL;
 
     // determine file size
-    if (fseek(f, 0, SEEK_END) != 0) goto error;
+    if (fseek(f, 0, SEEK_END) != 0)
+        goto error;
     long sz = ftell(f);
-    if (sz < 0) goto error;
+    if (sz < 0)
+        goto error;
     rewind(f);
 
     buf = malloc((size_t)sz);
-    if (!buf) goto error;
+    if (!buf)
+        goto error;
 
     // read entire file
-    if (fread(buf, 1, (size_t)sz, f) != (size_t)sz) goto error;
+    if (fread(buf, 1, (size_t)sz, f) != (size_t)sz)
+        goto error;
 
     fclose(f);
 
-    if (out_size) *out_size = (size_t)sz;
+    if (out_size)
+        *out_size = (size_t)sz;
     return buf;
 
-    error:
-    if (f) fclose(f);
+error:
+    if (f)
+        fclose(f);
     free(buf);
     return NULL;
 }
@@ -114,20 +121,22 @@ unsigned char *read_file(const char *path, size_t *out_size) {
 char *make_output_path(const char *input, const char *ext) {
     const char *slash = strrchr(input, '/');
 
-    #ifdef _WIN32
+#ifdef _WIN32
     const char *bslash = strrchr(input, '\\');
-    if (!slash || (bslash && bslash > slash)) slash = bslash;
-    #endif
+    if (!slash || (bslash && bslash > slash))
+        slash = bslash;
+#endif
 
     const char *base = slash ? slash + 1 : input;
-    const char *dot  = strrchr(base, '.');
+    const char *dot = strrchr(base, '.');
 
-    size_t dir_len  = (size_t)(base - input);
+    size_t dir_len = (size_t)(base - input);
     size_t name_len = dot ? (size_t)(dot - base) : strlen(base);
-    size_t ext_len  = strlen(ext);
+    size_t ext_len = strlen(ext);
 
     char *out = malloc(dir_len + name_len + ext_len + 1);
-    if (!out) return NULL;
+    if (!out)
+        return NULL;
 
     memcpy(out, input, dir_len);
     memcpy(out + dir_len, base, name_len);
@@ -145,10 +154,12 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
     uint32_t count = 0;
 
     char **strings = malloc(capacity * sizeof(char *));
-    if (!strings) return NULL;
+    if (!strings)
+        return NULL;
 
     while (*p) {
-        while (isspace((unsigned char)*p)) p++;
+        while (isspace((unsigned char)*p))
+            p++;
 
         // find key opening quote
         if (*p != '"') {
@@ -158,28 +169,37 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
 
         // skip key
         p++;
-        while (*p && !(*p == '"' && p[-1] != '\\')) p++;
-        if (!*p) break;
+        while (*p && !(*p == '"' && p[-1] != '\\'))
+            p++;
+        if (!*p)
+            break;
         p++;
 
-        while (isspace((unsigned char)*p)) p++;
-        if (*p != ':') continue;
+        while (isspace((unsigned char)*p))
+            p++;
+        if (*p != ':')
+            continue;
         p++;
 
-        while (isspace((unsigned char)*p)) p++;
-        if (*p != '"') continue;
+        while (isspace((unsigned char)*p))
+            p++;
+        if (*p != '"')
+            continue;
         p++;
 
         const char *start = p;
 
         // read value string
-        while (*p && !(*p == '"' && p[-1] != '\\')) p++;
-        if (!*p) break;
+        while (*p && !(*p == '"' && p[-1] != '\\'))
+            p++;
+        if (!*p)
+            break;
 
         size_t len = (size_t)(p - start);
 
         char *val = unescape_json_string(start, len);
-        if (!val) goto error;
+        if (!val)
+            goto error;
 
         // grow array if needed
         if (count == capacity) {
@@ -196,10 +216,11 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
         p++;
     }
 
-    if (out_count) *out_count = count;
+    if (out_count)
+        *out_count = count;
     return strings;
 
-    error:
+error:
     for (uint32_t i = 0; i < count; i++)
         free(strings[i]);
     free(strings);
@@ -212,7 +233,8 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
 char **read_json_strings(const char *path, uint32_t *out_count) {
     size_t size;
     unsigned char *buf = read_file(path, &size);
-    if (!buf) return NULL;
+    if (!buf)
+        return NULL;
 
     char *json = malloc(size + 1);
     if (!json) {
@@ -236,7 +258,8 @@ char **read_json_strings(const char *path, uint32_t *out_count) {
 int write_json_strings(const char *output, char *const *strings,
                        uint32_t count) {
     FILE *f = xfopen(output, "wb");
-    if (!f) return EXIT_FAILURE;
+    if (!f)
+        return EXIT_FAILURE;
 
     fputs("{\n", f);
 
@@ -247,9 +270,8 @@ int write_json_strings(const char *output, char *const *strings,
             return EXIT_FAILURE;
         }
 
-        fprintf(f,
-                "  \"%03u\": \"%s\"%s\n",
-                i, esc, (i + 1 < count) ? "," : "");
+        fprintf(f, "  \"%03u\": \"%s\"%s\n", i, esc,
+                (i + 1 < count) ? "," : "");
 
         free(esc);
     }
@@ -265,7 +287,8 @@ int write_json_strings(const char *output, char *const *strings,
  */
 char *escape_json_string(const char *s, size_t maxlen) {
     char *esc = malloc(maxlen * 2 + 1); // worst case
-    if (!esc) return NULL;
+    if (!esc)
+        return NULL;
 
     char *d = esc;
 
@@ -295,16 +318,20 @@ char *escape_json_string(const char *s, size_t maxlen) {
  */
 char *unescape_json_string(const char *start, size_t len) {
     char *out = malloc(len + 1);
-    if (!out) return NULL;
+    if (!out)
+        return NULL;
 
     char *d = out;
 
     for (size_t i = 0; i < len; i++) {
         if (start[i] == '\\' && i + 1 < len) {
             i++;
-            if (start[i] == 'n') *d++ = '\n';
-            else if (start[i] == 'r') *d++ = '\r';
-            else *d++ = start[i];
+            if (start[i] == 'n')
+                *d++ = '\n';
+            else if (start[i] == 'r')
+                *d++ = '\r';
+            else
+                *d++ = start[i];
         } else {
             *d++ = start[i];
         }
@@ -318,7 +345,8 @@ char *unescape_json_string(const char *start, size_t len) {
  * Free an array of strings.
  */
 void free_string_array(char **strings, uint32_t count) {
-    if (!strings) return;
+    if (!strings)
+        return;
 
     for (uint32_t i = 0; i < count; i++)
         free(strings[i]);

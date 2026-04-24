@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
 /*
  * LZ10 compression handler.
- * Copyright (c) 2026 SombrAbsol
  */
 
 #include <stddef.h>
@@ -23,9 +23,7 @@ int looks_like_lz10(const uint8_t *buf, size_t size) {
 
     // 24-bit little-endian decompressed size
     uint32_t decSize =
-    (uint32_t)buf[1] |
-    ((uint32_t)buf[2] << 8) |
-    ((uint32_t)buf[3] << 16);
+        (uint32_t)buf[1] | ((uint32_t)buf[2] << 8) | ((uint32_t)buf[3] << 16);
 
     return decSize > 0;
 }
@@ -44,9 +42,7 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
 
     // read decompressed size (24-bit LE)
     uint32_t decSize =
-    (uint32_t)src[1] |
-    ((uint32_t)src[2] << 8) |
-    ((uint32_t)src[3] << 16);
+        (uint32_t)src[1] | ((uint32_t)src[2] << 8) | ((uint32_t)src[3] << 16);
 
     if (decSize == 0)
         return NULL;
@@ -68,11 +64,17 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
         for (int bit = 0; bit < 8 && dp < dend; ++bit) {
             if ((flags & 0x80) == 0) {
                 // literal byte
-                if (sp >= send) { free(dst); return NULL; }
+                if (sp >= send) {
+                    free(dst);
+                    return NULL;
+                }
                 *dp++ = *sp++;
             } else {
                 // compressed block (back-reference)
-                if (sp + 1 >= send) { free(dst); return NULL; }
+                if (sp + 1 >= send) {
+                    free(dst);
+                    return NULL;
+                }
 
                 uint8_t b1 = *sp++;
                 uint8_t b2 = *sp++;

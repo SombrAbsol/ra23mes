@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
 /*
  * Text converter for Pokémon Ranger: Shadows of Almia.
- * Copyright (c) 2026 SombrAbsol
  */
 
 #include <stdint.h>
@@ -22,35 +22,40 @@
 static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
     uint32_t count;
     char **strings = read_json_strings(input, &count);
-    if (!strings) return NULL;
+    if (!strings)
+        return NULL;
 
     // initial buffer capacity, grows dynamically
     size_t cap = 1024;
     size_t size = 0;
 
     unsigned char *mem = malloc(cap);
-    if (!mem) goto error;
+    if (!mem)
+        goto error;
 
-    // append data to the buffer, growing it if necessary
-    #define EMIT(ptr, len) \
-    do { \
-        if (size + (len) > cap) { \
-            cap = (cap + (len)) * 2; \
-            unsigned char *tmp = realloc(mem, cap); \
-            if (!tmp) goto error; \
-                mem = tmp; \
-        } \
-        memcpy(mem + size, (ptr), (len)); \
-        size += (len); \
+// append data to the buffer, growing it if necessary
+#define EMIT(ptr, len)                                                         \
+    do {                                                                       \
+        if (size + (len) > cap) {                                              \
+            cap = (cap + (len)) * 2;                                           \
+            unsigned char *tmp = realloc(mem, cap);                            \
+            if (!tmp)                                                          \
+                goto error;                                                    \
+            mem = tmp;                                                         \
+        }                                                                      \
+        memcpy(mem + size, (ptr), (len));                                      \
+        size += (len);                                                         \
     } while (0)
 
     unsigned char b[4];
 
     // placeholder for total file size, patched later
-    write_u32_le(b, 0);      EMIT(b, 4);
+    write_u32_le(b, 0);
+    EMIT(b, 4);
 
     // number of strings
-    write_u32_le(b, count);  EMIT(b, 4);
+    write_u32_le(b, count);
+    EMIT(b, 4);
 
     uint32_t total = 8;
 
@@ -86,7 +91,7 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
     *outSize = size;
     return mem;
 
-    error:
+error:
     free(mem);
     free_string_array(strings, count);
     return NULL;
@@ -132,11 +137,12 @@ static int is_valid_mes(const uint8_t *buf, size_t size) {
  */
 static int mes_to_json(const char *input, const char *output) {
     size_t size;
-    unsigned char *buf  = NULL;
+    unsigned char *buf = NULL;
     unsigned char *work = NULL;
 
     buf = read_file(input, &size);
-    if (!buf) goto error;
+    if (!buf)
+        goto error;
 
     work = buf;
     size_t workSize = size;
@@ -159,29 +165,35 @@ static int mes_to_json(const char *input, const char *output) {
             goto error;
     }
 
-    if (workSize < 8) goto error;
+    if (workSize < 8)
+        goto error;
 
     // validate header
-    if (read_u32_le(work) != workSize) goto error;
+    if (read_u32_le(work) != workSize)
+        goto error;
     uint32_t count = read_u32_le(work + 4);
 
     char **strings = calloc(count, sizeof(char *));
-    if (!strings) goto error;
+    if (!strings)
+        goto error;
 
     uint32_t off = 8;
 
     // read each string block
     for (uint32_t i = 0; i < count; i++) {
-        if (off + 4 > workSize) goto error_strings;
+        if (off + 4 > workSize)
+            goto error_strings;
 
         uint32_t blk = read_u32_le(work + off);
         off += 4;
 
-        if (off + blk > workSize) goto error_strings;
+        if (off + blk > workSize)
+            goto error_strings;
 
         // duplicate null-terminated string
         strings[i] = xstrdup((char *)(work + off));
-        if (!strings[i]) goto error_strings;
+        if (!strings[i])
+            goto error_strings;
 
         off += blk;
     }
@@ -192,9 +204,9 @@ static int mes_to_json(const char *input, const char *output) {
     free(work);
     return res;
 
-    error_strings:
+error_strings:
     free_string_array(strings, count);
-    error:
+error:
     free(work);
     return EXIT_FAILURE;
 }
@@ -205,7 +217,8 @@ static int mes_to_json(const char *input, const char *output) {
 static int json_to_mes(const char *input, const char *output) {
     size_t size;
     unsigned char *buf = build_mes_buffer(input, &size);
-    if (!buf) return EXIT_FAILURE;
+    if (!buf)
+        return EXIT_FAILURE;
 
     FILE *f = xfopen(output, "wb");
     if (!f) {
@@ -227,13 +240,15 @@ static int json_to_mes(const char *input, const char *output) {
 static int json_to_meslz(const char *input, const char *output) {
     size_t rawSize;
     unsigned char *raw = build_mes_buffer(input, &rawSize);
-    if (!raw) return EXIT_FAILURE;
+    if (!raw)
+        return EXIT_FAILURE;
 
     size_t cmpSize;
     unsigned char *cmp = lz10_compress(raw, rawSize, &cmpSize);
     free(raw);
 
-    if (!cmp) return EXIT_FAILURE;
+    if (!cmp)
+        return EXIT_FAILURE;
 
     FILE *f = xfopen(output, "wb");
     if (!f) {
@@ -252,12 +267,13 @@ static int json_to_meslz(const char *input, const char *output) {
  * Command-line interface.
  */
 int main(int argc, char **argv) {
-    #ifdef _WIN32
+#ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8); // ensure UTF-8 output on Windows
-    #endif
+#endif
 
     if (argc >= 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h"))) {
-        printf("ra2mes - MES text file converter for Pokémon Ranger: Shadows of Almia\n");
+        printf("ra2mes - MES text file converter for Pokémon Ranger: Shadows "
+               "of Almia\n");
         printf("Copyright (c) 2026 SombrAbsol\n\n");
         printf("Usage:\n");
         printf("  %s --to-json  <in.mes|in.meslz> [out.json]\n", argv[0]);
@@ -281,7 +297,7 @@ int main(int argc, char **argv) {
     char *output = NULL;
     int result = EXIT_FAILURE;
 
-    const char *input  = argv[2];
+    const char *input = argv[2];
     const char *outarg = (argc == 4) ? argv[3] : NULL;
 
     if (!file_exists(input)) {
@@ -291,17 +307,20 @@ int main(int argc, char **argv) {
 
     if (strcmp(argv[1], "--to-json") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".json");
-        if (!output) return EXIT_FAILURE;
+        if (!output)
+            return EXIT_FAILURE;
         result = mes_to_json(input, output);
 
     } else if (strcmp(argv[1], "--to-mes") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".mes");
-        if (!output) return EXIT_FAILURE;
+        if (!output)
+            return EXIT_FAILURE;
         result = json_to_mes(input, output);
 
     } else if (strcmp(argv[1], "--to-meslz") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".meslz");
-        if (!output) return EXIT_FAILURE;
+        if (!output)
+            return EXIT_FAILURE;
         result = json_to_meslz(input, output);
 
     } else {

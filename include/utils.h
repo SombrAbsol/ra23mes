@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
 /*
  * Utility functions.
- * Copyright (c) 2026 SombrAbsol
  */
 
 #ifndef UTILS_H
