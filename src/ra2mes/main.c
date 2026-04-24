@@ -31,9 +31,7 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
     unsigned char *mem = malloc(cap);
     if (!mem) goto error;
 
-    /*
-     * Append data to the buffer, growing it if necessary.
-     */
+    // append data to the buffer, growing it if necessary
     #define EMIT(ptr, len) \
     do { \
         if (size + (len) > cap) { \
@@ -56,9 +54,7 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
 
     uint32_t total = 8;
 
-    /*
-     * Write each string block: [block size][string][padding]
-     */
+    // write each string block: [block size][string][padding]
     for (uint32_t i = 0; i < count; i++) {
 
         // include null terminator
@@ -97,6 +93,41 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
 }
 
 /*
+ * Validate whether a buffer matches the expected Pokémon Ranger 2 MES file
+ * structure.
+ */
+static int is_valid_mes(const uint8_t *buf, size_t size) {
+    if (size < 8) // minimum header size
+        return 0;
+
+    uint32_t total = read_u32_le(buf);     // total file size
+    uint32_t count = read_u32_le(buf + 4); // number of strings
+
+    // stored total size must match actual buffer size
+    if (total != size)
+        return 0;
+
+    uint32_t off = 8;
+
+    // iterate over all string blocks and read them
+    for (uint32_t i = 0; i < count; i++) {
+        if (off + 4 > size)
+            return 0;
+
+        uint32_t blk = read_u32_le(buf + off);
+        off += 4;
+
+        if (blk == 0 || off + blk > size)
+            return 0;
+
+        off += blk;
+    }
+
+    // final offset must match file size
+    return (off == size);
+}
+
+/*
  * Convert a (raw or LZ10-compressed) Pokémon Ranger 2 MES file into JSON.
  */
 static int mes_to_json(const char *input, const char *output) {
@@ -115,12 +146,17 @@ static int mes_to_json(const char *input, const char *output) {
         size_t decSize;
         unsigned char *dec = lz10_decompress(buf, size, &decSize);
 
-        if (dec) {
+        if (dec && is_valid_mes(dec, decSize)) {
             work = dec;
             workSize = decSize;
             free(buf);
+        } else {
+            free(dec);
         }
+
         // if decompression fails, continue with raw buffer
+        if (!is_valid_mes(work, workSize))
+            goto error;
     }
 
     if (workSize < 8) goto error;
