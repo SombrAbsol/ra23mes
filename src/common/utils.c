@@ -22,9 +22,19 @@
 FILE *xfopen(const char *path, const char *mode) {
 #ifdef _WIN32
     FILE *f = NULL;
-    return (fopen_s(&f, path, mode) == 0) ? f : NULL;
+    if (fopen_s(&f, path, mode) != 0) {
+        fprintf(stderr, "xfopen: failed to open '%s' with mode '%s'\n", path,
+                mode);
+        return NULL;
+    }
+    return f;
 #else
-    return fopen(path, mode);
+    FILE *f = fopen(path, mode);
+    if (!f) {
+        fprintf(stderr, "xfopen: failed to open '%s' with mode '%s'\n", path,
+                mode);
+    }
+    return f;
 #endif
 }
 
@@ -85,24 +95,34 @@ unsigned char *read_file(const char *path, size_t *out_size) {
     unsigned char *buf = NULL;
 
     f = xfopen(path, "rb");
-    if (!f)
+    if (!f) {
+        fprintf(stderr, "read_file: cannot open '%s'\n", path);
         return NULL;
+    }
 
-    // determine file size
-    if (fseek(f, 0, SEEK_END) != 0)
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fprintf(stderr, "read_file: fseek failed for '%s'\n", path);
         goto error;
+    }
+
     long sz = ftell(f);
-    if (sz < 0)
+    if (sz < 0 || (unsigned long)sz > SIZE_MAX) {
+        fprintf(stderr, "read_file: invalid file size for '%s'\n", path);
         goto error;
+    }
     rewind(f);
 
     buf = malloc((size_t)sz);
-    if (!buf)
+    if (!buf) {
+        fprintf(stderr, "read_file: memory allocation failed (%ld bytes)\n",
+                sz);
         goto error;
+    }
 
-    // read entire file
-    if (fread(buf, 1, (size_t)sz, f) != (size_t)sz)
+    if (fread(buf, 1, (size_t)sz, f) != (size_t)sz) {
+        fprintf(stderr, "read_file: failed to read entire file '%s'\n", path);
         goto error;
+    }
 
     fclose(f);
 
@@ -156,12 +176,19 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
     uint32_t count = 0;
 
     char **strings = malloc(capacity * sizeof(char *));
-    if (!strings)
+    if (!strings) {
+        fprintf(stderr, "json_parse_strings: allocation failed\n");
         return NULL;
+    }
 
     while (*p) {
         while (isspace((unsigned char)*p))
             p++;
+
+        if (*p == '{' || *p == '}' || *p == ',') {
+            p++;
+            continue;
+        }
 
         // find key opening quote
         if (*p != '"') {
@@ -218,14 +245,17 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
         size_t len = (size_t)(p - start);
 
         char *val = unescape_json_string(start, len);
-        if (!val)
+        if (!val) {
+            fprintf(stderr, "json_parse_strings: failed to unescape string\n");
             goto error;
+        }
 
         // grow array if needed
         if (count == capacity) {
             capacity *= 2;
             char **tmp = realloc(strings, capacity * sizeof(char *));
             if (!tmp) {
+                fprintf(stderr, "json_parse_strings: realloc failed\n");
                 free(val);
                 goto error;
             }
@@ -253,11 +283,14 @@ error:
 char **read_json_strings(const char *path, uint32_t *out_count) {
     size_t size;
     unsigned char *buf = read_file(path, &size);
-    if (!buf)
+    if (!buf) {
+        fprintf(stderr, "read_json_strings: failed to read '%s'\n", path);
         return NULL;
+    }
 
     char *json = malloc(size + 1);
     if (!json) {
+        fprintf(stderr, "read_json_strings: allocation failed\n");
         free(buf);
         return NULL;
     }
@@ -278,8 +311,10 @@ char **read_json_strings(const char *path, uint32_t *out_count) {
 int write_json_strings(const char *output, char *const *strings,
                        uint32_t count) {
     FILE *f = xfopen(output, "wb");
-    if (!f)
+    if (!f) {
+        fprintf(stderr, "write_json_strings: cannot open '%s'\n", output);
         return EXIT_FAILURE;
+    }
 
     fputs("{\n", f);
 
@@ -301,6 +336,8 @@ int write_json_strings(const char *output, char *const *strings,
     for (uint32_t i = 0; i < count; i++) {
         char *esc = escape_json_string(strings[i], strlen(strings[i]));
         if (!esc) {
+            fprintf(stderr, "write_json_strings: escape failed for string %u\n",
+                    i);
             fclose(f);
             return EXIT_FAILURE;
         }
@@ -321,13 +358,15 @@ int write_json_strings(const char *output, char *const *strings,
  * Escape a set of characters for JSON output.
  */
 char *escape_json_string(const char *s, size_t len) {
-    char *esc = malloc(len * 2 + 1); // worst case
-    if (!esc)
+    char *esc = malloc(len * 6 + 1); // worst case
+    if (!esc) {
+        fprintf(stderr, "escape_json_string: allocation failed\n");
         return NULL;
+    }
 
     char *d = esc;
 
-    for (size_t i = 0; i < len && s[i]; i++) {
+    for (size_t i = 0; i < len; i++) {
         unsigned char c = (unsigned char)s[i];
 
         if (c == '"' || c == '\\') {
@@ -339,6 +378,14 @@ char *escape_json_string(const char *s, size_t len) {
         } else if (c == '\r') {
             *d++ = '\\';
             *d++ = 'r';
+        } else if (c < 0x20) {
+            static const char hex[] = "0123456789abcdef";
+            *d++ = '\\';
+            *d++ = 'u';
+            *d++ = '0';
+            *d++ = '0';
+            *d++ = hex[c >> 4];
+            *d++ = hex[c & 0xF];
         } else {
             *d++ = c;
         }
@@ -353,8 +400,10 @@ char *escape_json_string(const char *s, size_t len) {
  */
 char *unescape_json_string(const char *start, size_t len) {
     char *out = malloc(len + 1);
-    if (!out)
+    if (!out) {
+        fprintf(stderr, "unescape_json_string: allocation failed\n");
         return NULL;
+    }
 
     char *d = out;
 

@@ -8,6 +8,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "lz10.h"
@@ -32,24 +33,30 @@ int looks_like_lz10(const uint8_t *buf, size_t size) {
  * Decompress an LZ10 buffer.
  */
 uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
-    if (!src || srcSize < 4 || !outSize)
+    if (!src || srcSize < 4 || !outSize) {
+        fprintf(stderr, "lz10_decompress: invalid arguments\n");
         return NULL;
+    }
 
-    // check compression method
     uint8_t method = src[0];
-    if (method != 0x10)
+    if (method != 0x10) {
+        fprintf(stderr, "lz10_decompress: unsupported method 0x%02X\n", method);
         return NULL;
+    }
 
-    // read decompressed size (24-bit LE)
     uint32_t decSize =
         (uint32_t)src[1] | ((uint32_t)src[2] << 8) | ((uint32_t)src[3] << 16);
-
-    if (decSize == 0)
+    if (decSize == 0) {
+        fprintf(stderr, "lz10_decompress: zero decompressed size\n");
         return NULL;
+    }
 
     uint8_t *dst = malloc(decSize);
-    if (!dst)
+    if (!dst) {
+        fprintf(stderr, "lz10_decompress: allocation failed (%u bytes)\n",
+                decSize);
         return NULL;
+    }
 
     const uint8_t *sp = src + 4;         // source pointer
     const uint8_t *send = src + srcSize; // source end
@@ -65,6 +72,9 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
             if ((flags & 0x80) == 0) {
                 // literal byte
                 if (sp >= send) {
+                    fprintf(
+                        stderr,
+                        "lz10_decompress: unexpected end of input (literal)\n");
                     free(dst);
                     return NULL;
                 }
@@ -72,6 +82,9 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
             } else {
                 // compressed block (back-reference)
                 if (sp + 1 >= send) {
+                    fprintf(
+                        stderr,
+                        "lz10_decompress: unexpected end of input (backref)\n");
                     free(dst);
                     return NULL;
                 }
@@ -87,6 +100,10 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
 
                 // validate back-reference
                 if ((size_t)(dp - dst) < disp) {
+                    fprintf(
+                        stderr,
+                        "lz10_decompress: invalid back-reference (disp=%zu)\n",
+                        disp);
                     free(dst);
                     return NULL;
                 }
@@ -105,6 +122,8 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
 
     // ensure exact output size was produced
     if (dp != dend) {
+        fprintf(stderr, "lz10_decompress: size mismatch (expected %u)\n",
+                decSize);
         free(dst);
         return NULL;
     }
@@ -119,8 +138,16 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
  * of 0x12 bytes.
  */
 uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
-    if (!src || !outSize)
+    if (!src || !outSize) {
+        fprintf(stderr, "lz10_compress: invalid arguments\n");
         return NULL;
+    }
+
+    if (srcSize > 0xFFFFFF) {
+        fprintf(stderr, "lz10_compress: input too large (%zu bytes)\n",
+                srcSize);
+        return NULL;
+    }
 
     /*
      * Worst-case size: 4 bytes for the header, plus the full source size if
@@ -129,8 +156,10 @@ uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
     size_t maxSize = 4 + srcSize + ((srcSize + 7) >> 3);
 
     uint8_t *out = calloc(maxSize, 1);
-    if (!out)
+    if (!out) {
+        fprintf(stderr, "lz10_compress: allocation failed\n");
         return NULL;
+    }
 
     // write header
     out[0] = 0x10;
@@ -167,7 +196,7 @@ uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
             maxLen = 0x12;
 
         // brute-force search for longest match
-        for (size_t p = maxPos; p >= 1; --p) {
+        for (size_t p = maxPos; p > 1; --p) {
             if (raw[0] != raw[-(ptrdiff_t)p])
                 continue;
 
@@ -184,10 +213,6 @@ uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize) {
             if (l > bestLen) {
                 bestLen = l;
                 bestPos = p;
-
-                // early exit if max match reached
-                if (l == maxLen)
-                    break;
             }
         }
 

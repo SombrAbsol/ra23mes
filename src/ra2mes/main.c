@@ -24,26 +24,35 @@
 static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
     uint32_t count;
     char **strings = read_json_strings(input, &count);
-    if (!strings)
+    if (!strings) {
+        fprintf(stderr, "build_mes_buffer: failed to parse JSON '%s'\n", input);
         return NULL;
+    }
 
     // initial buffer capacity, grows dynamically
     size_t cap = 1024;
     size_t size = 0;
 
     unsigned char *mem = malloc(cap);
-    if (!mem)
+    if (!mem) {
+        fprintf(stderr, "build_mes_buffer: allocation failed\n");
         goto error;
+    }
 
 // append data to the buffer, growing it if necessary
 #define EMIT(ptr, len)                                                         \
     do {                                                                       \
-        if (size + (len) > cap) {                                              \
-            cap = (cap + (len)) * 2;                                           \
-            unsigned char *tmp = realloc(mem, cap);                            \
-            if (!tmp)                                                          \
+        if (size + len > cap) {                                                \
+            size_t newcap = cap * 2;                                           \
+            if (newcap < size + len)                                           \
+                newcap = size + len;                                           \
+            unsigned char *tmp = realloc(mem, newcap);                         \
+            if (!tmp) {                                                        \
+                fprintf(stderr, "build_mes_buffer: buffer growth failed\n");   \
                 goto error;                                                    \
+            }                                                                  \
             mem = tmp;                                                         \
+            cap = newcap;                                                      \
         }                                                                      \
         memcpy(mem + size, (ptr), (len));                                      \
         size += (len);                                                         \
@@ -59,7 +68,9 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
     write_u32_le(b, count);
     EMIT(b, 4);
 
-    uint32_t total = 8;
+    size_t total = 8;
+    if (total != size)
+        goto error;
 
     // write each string block: [block size][string][padding]
     for (uint32_t i = 0; i < count; i++) {
@@ -118,13 +129,13 @@ static int is_valid_mes(const uint8_t *buf, size_t size) {
 
     // iterate over all string blocks and read them
     for (uint32_t i = 0; i < count; i++) {
-        if (off + 4 > size)
+        if ((uint64_t)off + 4 > size)
             return 0;
 
         uint32_t blk = read_u32_le(buf + off);
         off += 4;
 
-        if (blk == 0 || off + blk > size)
+        if (blk == 0 || (uint64_t)off + blk > size)
             return 0;
 
         off += blk;
@@ -143,59 +154,56 @@ static int mes_to_json(const char *input, const char *output) {
     unsigned char *work = NULL;
 
     buf = read_file(input, &size);
-    if (!buf)
+    if (!buf) {
+        fprintf(stderr, "mes_to_json: failed to read '%s'\n", input);
         goto error;
+    }
 
     work = buf;
     size_t workSize = size;
+    unsigned char *dec = NULL;
 
     // attempt LZ10 decompression
     if (looks_like_lz10(buf, size)) {
         size_t decSize;
-        unsigned char *dec = lz10_decompress(buf, size, &decSize);
+        dec = lz10_decompress(buf, size, &decSize);
 
         if (dec && is_valid_mes(dec, decSize)) {
+            free(buf);
             work = dec;
             workSize = decSize;
-            free(buf);
         } else {
             free(dec);
         }
-
-        // if decompression fails, continue with raw buffer
-        if (!is_valid_mes(work, workSize))
-            goto error;
     }
 
-    if (workSize < 8)
+    if (!is_valid_mes(work, workSize)) {
+        fprintf(stderr, "mes_to_json: invalid MES file '%s'\n", input);
         goto error;
+    }
 
-    // validate header
-    if (read_u32_le(work) != workSize)
-        goto error;
     uint32_t count = read_u32_le(work + 4);
 
     char **strings = calloc(count, sizeof(char *));
-    if (!strings)
+    if (!strings) {
+        fprintf(stderr, "mes_to_json: allocation failed\n");
         goto error;
+    }
 
     uint32_t off = 8;
 
-    // read each string block
     for (uint32_t i = 0; i < count; i++) {
-        if (off + 4 > workSize)
-            goto error_strings;
-
         uint32_t blk = read_u32_le(work + off);
         off += 4;
 
-        if (off + blk > workSize)
-            goto error_strings;
-
-        // duplicate null-terminated string
         strings[i] = xstrdup((char *)(work + off));
-        if (!strings[i])
+        if (!strings[i]) {
+            fprintf(stderr,
+                    "mes_to_json: memory allocation failed for string at index "
+                    "%u\n",
+                    i);
             goto error_strings;
+        }
 
         off += blk;
     }
@@ -219,16 +227,25 @@ error:
 static int json_to_mes(const char *input, const char *output) {
     size_t size;
     unsigned char *buf = build_mes_buffer(input, &size);
-    if (!buf)
+    if (!buf) {
+        fprintf(stderr, "json_to_mes: failed to build MES from '%s'\n", input);
         return EXIT_FAILURE;
+    }
 
     FILE *f = xfopen(output, "wb");
     if (!f) {
+        fprintf(stderr, "json_to_mes: cannot open '%s'\n", output);
         free(buf);
         return EXIT_FAILURE;
     }
 
-    fwrite(buf, 1, size, f);
+    if (fwrite(buf, 1, size, f) != size) {
+        fprintf(stderr, "json_to_mes: write failed\n");
+        fclose(f);
+        free(buf);
+        return EXIT_FAILURE;
+    }
+
     fclose(f);
     free(buf);
 
@@ -242,26 +259,37 @@ static int json_to_mes(const char *input, const char *output) {
 static int json_to_meslz(const char *input, const char *output) {
     size_t rawSize;
     unsigned char *raw = build_mes_buffer(input, &rawSize);
-    if (!raw)
+    if (!raw) {
+        fprintf(stderr, "json_to_meslz: failed to build MESLZ from '%s'\n",
+                input);
         return EXIT_FAILURE;
+    }
 
     size_t cmpSize;
     unsigned char *cmp = lz10_compress(raw, rawSize, &cmpSize);
     free(raw);
 
-    if (!cmp)
+    if (!cmp) {
+        fprintf(stderr, "json_to_meslz: compression failed\n");
         return EXIT_FAILURE;
+    }
 
     FILE *f = xfopen(output, "wb");
     if (!f) {
+        fprintf(stderr, "json_to_meslz: cannot open '%s'\n", output);
         free(cmp);
         return EXIT_FAILURE;
     }
 
-    fwrite(cmp, 1, cmpSize, f);
+    if (fwrite(cmp, 1, cmpSize, f) != cmpSize) {
+        fprintf(stderr, "json_to_meslz: write failed\n");
+        fclose(f);
+        free(cmp);
+        return EXIT_FAILURE;
+    }
+
     fclose(f);
     free(cmp);
-
     return EXIT_SUCCESS;
 }
 
