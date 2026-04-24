@@ -13,8 +13,8 @@
 #include <stdio.h>
 
 /*
- * Cross-platform wrapper around fopen.
- * On Windows, uses fopen_s for parameter handling.
+ * Cross-platform wrapper around fopen. Use fopen_s on Windows, or fopen
+ * otherwise.
  */
 FILE *xfopen(const char *path, const char *mode);
 
