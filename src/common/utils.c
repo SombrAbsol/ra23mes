@@ -105,21 +105,34 @@ unsigned char *read_file(const char *path, size_t *out_size) {
         goto error;
     }
 
-    long sz = ftell(f);
-    if (sz < 0 || (unsigned long)sz > SIZE_MAX) {
+#if defined(_WIN32)
+    long long sz = _ftelli64(f);
+#else
+    long long sz = ftello(f);
+#endif
+
+    if (sz < 0) {
         fprintf(stderr, "read_file: invalid file size for '%s'\n", path);
         goto error;
     }
-    rewind(f);
 
-    buf = malloc((size_t)sz);
-    if (!buf) {
-        fprintf(stderr, "read_file: memory allocation failed (%ld bytes)\n",
-                sz);
+    if ((unsigned long long)sz > SIZE_MAX) {
+        fprintf(stderr, "read_file: file too large for memory allocation\n");
         goto error;
     }
 
-    if (fread(buf, 1, (size_t)sz, f) != (size_t)sz) {
+    size_t size = (size_t)sz;
+
+    rewind(f);
+
+    buf = malloc(size);
+    if (!buf) {
+        fprintf(stderr, "read_file: memory allocation failed (%zu bytes)\n",
+                size);
+        goto error;
+    }
+
+    if (fread(buf, 1, size, f) != size) {
         fprintf(stderr, "read_file: failed to read entire file '%s'\n", path);
         goto error;
     }
@@ -127,7 +140,7 @@ unsigned char *read_file(const char *path, size_t *out_size) {
     fclose(f);
 
     if (out_size)
-        *out_size = (size_t)sz;
+        *out_size = size;
     return buf;
 
 error:
