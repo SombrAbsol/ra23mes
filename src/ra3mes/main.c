@@ -1,7 +1,9 @@
-// SPDX-License-Identifier: MIT
-// SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
 /*
  * Text converter for Pokémon Ranger: Guardian Signs.
+ *
+ * SPDX-FileCopyrightText: 2026 SombrAbsol
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 #include <stdint.h>

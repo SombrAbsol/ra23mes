@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 SombrAbsol
+
+SPDX-License-Identifier: MIT
+-->
+
 # ra23mes
 <a href="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-linux.yml"><img src="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-linux.yml/badge.svg" alt="Linux Nightly"></a>
 <a href="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-windows.yml"><img src="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-windows.yml/badge.svg" alt="Windows Nightly"></a>
@@ -61,5 +67,3 @@ ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol).
 
 ## License
 ra2mes and ra3mes are free softwares. You can redistribute them and/or modify them under the [terms of the Expat License](/LICENSE) as published by the Massachusetts Institute of Technology.
-
-`SPDX-License-Identifier: MIT`<br>`SPDX-FileCopyrightText: Copyright 2026 SombrAbsol`

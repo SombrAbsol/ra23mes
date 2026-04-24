@@ -1,7 +1,9 @@
-// SPDX-License-Identifier: MIT
-// SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
 /*
  * LZ10 compression handler.
+ *
+ * SPDX-FileCopyrightText: 2026 SombrAbsol
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 #include <stddef.h>

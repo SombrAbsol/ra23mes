@@ -1,5 +1,7 @@
+# SPDX-FileCopyrightText: 2026 SombrAbsol
+#
 # SPDX-License-Identifier: MIT
-# SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
+
 CC := $(shell command -v clang >/dev/null 2>&1 && echo clang || echo gcc)
 CFLAGS := -O3 -Wall -Wextra -Werror
 CPPFLAGS := -I include

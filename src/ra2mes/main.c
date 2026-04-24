@@ -1,7 +1,9 @@
-// SPDX-License-Identifier: MIT
-// SPDX-FileCopyrightText: Copyright 2026 SombrAbsol
 /*
  * Text converter for Pokémon Ranger: Shadows of Almia.
+ *
+ * SPDX-FileCopyrightText: 2026 SombrAbsol
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 #include <stdint.h>

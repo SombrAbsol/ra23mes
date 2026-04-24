@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 SombrAbsol
+
+SPDX-License-Identifier: MIT
+-->
+
 # MES File Format
 Used to store texts in:
 * *Pokémon Ranger: Shadows of Almia* (version 1)
@@ -127,5 +133,3 @@ Unless constants are specified, X is a numeric variable, whose action associated
   * `02` Normal (default)
   * Slower as the value increases
   * `90` Slowest speed used in-game
-
-`SPDX-License-Identifier: MIT`<br>`SPDX-FileCopyrightText: Copyright 2026 SombrAbsol`
