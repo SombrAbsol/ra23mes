@@ -1,5 +1,6 @@
 CC := $(shell command -v clang >/dev/null 2>&1 && echo clang || echo gcc)
 CFLAGS := -O3 -Wall -Wextra -Werror
+CPPFLAGS := -I include
 SRC_DIR := src
 BUILD_DIR := build
 
@@ -20,7 +21,7 @@ $(BUILD_DIR)/$(1)$(EXTENSION): $(patsubst $(SRC_DIR)/$(1)/%.c,$(BUILD_DIR)/$(1).
 	$(CC) -o $$@ $$^
 
 $(BUILD_DIR)/$(1).dir/%.o: $(SRC_DIR)/$(1)/%.c | $(BUILD_DIR)/$(1).dir
-	$(CC) $(CFLAGS) -c $$< -o $$@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $$< -o $$@
 
 $(BUILD_DIR)/$(1).dir:
 	mkdir -p $$@
@@ -29,7 +30,7 @@ endef
 $(foreach t,$(TARGET_NAMES),$(eval $(call RULES,$(t))))
 
 $(BUILD_DIR)/common.dir/%.o: $(SRC_DIR)/common/%.c | $(BUILD_DIR)/common.dir
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/common.dir:
 	mkdir -p $@

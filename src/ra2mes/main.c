@@ -14,7 +14,7 @@
 #endif
 
 #include "lz10.h"
-#include "../common/utils.h"
+#include "utils.h"
 
 /*
  * Build a MES-format binary buffer from a JSON file.

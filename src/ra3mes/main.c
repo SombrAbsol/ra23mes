@@ -13,7 +13,7 @@
 #include <windows.h>
 #endif
 
-#include "../common/utils.h"
+#include "utils.h"
 
 /*
  * Convert a Pokémon Ranger 3 MES file into JSON.
