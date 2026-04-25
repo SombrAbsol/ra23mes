@@ -52,7 +52,7 @@ jobs:
             artifact-suffix: windows
             extension: .exe
 
-    name: Build ${{ env.TARGET_RA2 }} and ${{ env.TARGET_RA3 }} on ${{ matrix.os }}
+    name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     steps:
