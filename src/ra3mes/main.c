@@ -162,30 +162,46 @@ static int json_to_mes(const char *input, const char *output) {
 
     // write header
     write_u32_le(b, cur);
-    if (fwrite(b, 1, 4, f) != 4)
+    if (fwrite(b, 1, 4, f) != 4) {
+        fprintf(stderr, "json_to_mes: failed to write total size to '%s'\n",
+                output);
         goto error_io;
+    }
     write_u32_le(b, count);
-    if (fwrite(b, 1, 4, f) != 4)
+    if (fwrite(b, 1, 4, f) != 4) {
+        fprintf(stderr, "json_to_mes: failed to write string count to '%s'\n",
+                output);
         goto error_io;
+    }
 
     // write offset table
     for (uint32_t i = 0; i < count; i++) {
         write_u32_le(b, offsets[i]);
-        if (fwrite(b, 1, 4, f) != 4)
+        if (fwrite(b, 1, 4, f) != 4) {
+            fprintf(stderr, "json_to_mes: failed to write offset table\n");
             goto error_io;
+        }
     }
 
     // write string data
     for (uint32_t i = 0; i < count; i++) {
         uint32_t len = (uint32_t)strlen(strings[i]) + 1;
-        if (fwrite(strings[i], 1, len, f) != len)
+        if (fwrite(strings[i], 1, len, f) != len) {
+            fprintf(stderr, "json_to_mes: failed to write string %u to '%s'\n",
+                    i, output);
             goto error_io;
+        }
 
         // pad to 4-byte boundary
         static const unsigned char zero_pad[4] = {0};
         uint32_t pad = pad4(len);
-        if (pad && fwrite(zero_pad, 1, pad, f) != pad)
+        if (pad && fwrite(zero_pad, 1, pad, f) != pad) {
+            fprintf(
+                stderr,
+                "json_to_mes: failed to write padding for string %u to '%s'\n",
+                i, output);
             goto error_io;
+        }
     }
 
     fclose(f);
@@ -194,7 +210,6 @@ static int json_to_mes(const char *input, const char *output) {
     return EXIT_SUCCESS;
 
 error_io:
-    fprintf(stderr, "json_to_mes: write failed\n");
     fclose(f);
 error:
     free(offsets);
