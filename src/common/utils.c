@@ -17,7 +17,7 @@
 
 /*
  * Cross-platform wrapper around fopen. Use fopen_s on Windows, or fopen
- * otherwise.
+ * otherwise
  */
 FILE *xfopen(const char *path, const char *mode) {
 #ifdef _WIN32
