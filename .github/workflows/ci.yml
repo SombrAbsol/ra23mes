@@ -101,10 +101,6 @@ jobs:
     permissions:
       contents: write
 
-    env:
-      TARGET_RA2: ra2mes
-      TARGET_RA3: ra3mes
-
     steps:
       - name: Download all artefacts
         uses: actions/download-artifact@v8
