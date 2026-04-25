@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: 2026 SombrAbsol
 #
 # SPDX-License-Identifier: MIT
-CC      := $(shell command -v clang >/dev/null 2>&1 && echo clang || echo gcc)
-CFLAGS  := -O3 -Wall -Wextra -Werror -MMD -MP
+CC       := $(shell command -v clang >/dev/null 2>&1 && echo clang || echo gcc)
+CFLAGS   := -O3 -Wall -Wextra -Werror -MMD -MP
 CPPFLAGS := -I include
-LDFLAGS :=
-LDLIBS  :=
+LDFLAGS  :=
+LDLIBS   :=
 
-SRC_DIR  := src
+SRC_DIR   := src
 BUILD_DIR := build
-PREFIX   := /usr/local
+PREFIX    := /usr/local
 
 TARGET_NAMES := ra2mes ra3mes
 EXTENSION    := $(if $(filter Windows_NT,$(OS)),.exe)
@@ -25,7 +25,7 @@ all: $(addprefix $(BUILD_DIR)/,$(addsuffix $(EXTENSION),$(TARGET_NAMES)))
 define RULES
 $(1): $(BUILD_DIR)/$(1)$(EXTENSION)
 
-$(BUILD_DIR)/$(1)$(EXTENSION): $$(patsubst $(SRC_DIR)/$(1)/%.c,$(BUILD_DIR)/$(1).dir/%.o,$$(wildcard $(SRC_DIR)/$(1)/*.c)) $(COMMON_OBJS) | $(BUILD_DIR)
+$(BUILD_DIR)/$(1)$(EXTENSION): $$(patsubst $(SRC_DIR)/$(1)/%.c,$(BUILD_DIR)/$(1).dir/%.o,$$(wildcard $(SRC_DIR)/$(1)/*.c)) $(COMMON_OBJS)
 	$(CC) $(LDFLAGS) -o $$@ $$^ $(LDLIBS)
 
 $(BUILD_DIR)/$(1).dir/%.o: $(SRC_DIR)/$(1)/%.c | $(BUILD_DIR)/$(1).dir
@@ -44,9 +44,6 @@ $(BUILD_DIR)/common.dir/%.o: $(SRC_DIR)/common/%.c | $(BUILD_DIR)/common.dir
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/common.dir:
-	mkdir -p $@
-
-$(BUILD_DIR):
 	mkdir -p $@
 
 -include $(COMMON_DEPS)
