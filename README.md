@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 # ra23mes
-<a href="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest-change.yml"><img src="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest-change.yml/badge.svg" alt="Latest change"></a>
+<a href="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest-change.yml"><img src="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest.yml/badge.svg" alt="Latest"></a>
 <a href="https://opensource.org/license/mit"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT (Expat)"></a>
 
 MES text file converters for *Pokémon Ranger: Shadows of Almia* and *Pokémon Ranger: Guardian Signs*.
