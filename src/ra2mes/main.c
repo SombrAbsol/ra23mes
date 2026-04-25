@@ -164,7 +164,7 @@ static int mes_to_json(const char *input, const char *output) {
     unsigned char *dec = NULL;
 
     // attempt LZ10 decompression
-    if (looks_like_lz10(buf, size)) {
+    if (!is_valid_mes(buf, size) && looks_like_lz10(buf, size)) {
         size_t decSize;
         dec = lz10_decompress(buf, size, &decSize);
 
