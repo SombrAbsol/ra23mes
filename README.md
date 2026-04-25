@@ -17,7 +17,7 @@ For more information on the MES format, see [the documentation](/docs/mes.md).
 ## Download
 |        | Linux | macOS | Windows |
 | ------ | ----- | ----- | ------- |
-| Latest | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra2mes-linux.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra3mes-linux.zip) | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra2mes-macos.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra3mes-macos.zip) | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra2mes-windows.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra3mes-windows.zip) |
+| Latest | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/download/latest/ra2mes-linux.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/download/latest/ra3mes-linux.zip) | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/download/latest/ra2mes-macos.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/download/latest/ra3mes-macos.zip) | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/download/latest/ra2mes-windows.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/download/latest/ra3mes-windows.zip) |
 
 ## Usage
 ### Dumping the ROM
