@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 # ra23mes
-<a href="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest-change.yml"><img src="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest.yml/badge.svg" alt="Latest"></a>
+<a href="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest.yml"><img src="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest.yml/badge.svg" alt="Latest"></a>
 <a href="https://opensource.org/license/mit"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT (Expat)"></a>
 
 MES text file converters for *Pokémon Ranger: Shadows of Almia* and *Pokémon Ranger: Guardian Signs*.
@@ -18,7 +18,7 @@ For more information on the MES format, see [the documentation](/docs/mes.md).
 |         | Linux | macOS | Windows |
 | ------- | ----- | ----- | ------- |
 | Release |       |       |         |
-| Latest  | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest-change/main/ra2mes-linux.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest-change/main/ra3mes-linux.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest-change/main/ra2mes-macos.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest-change/main/ra3mes-macos.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest-change/main/ra2mes-windows.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest-change/main/ra3mes-windows.zip) |
+| Latest  | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-linux.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-linux.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-macos.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-macos.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-windows.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-windows.zip) |
 
 ## Usage
 ### Dumping the ROM
