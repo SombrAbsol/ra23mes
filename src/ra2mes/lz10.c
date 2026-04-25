@@ -92,9 +92,6 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
                 uint8_t b1 = *sp++;
                 uint8_t b2 = *sp++;
 
-                // upper 4 bits: length (stored as len-3)
-                int length = (b1 >> 4) + 3;
-
                 // lower 12 bits: displacement (stored as disp-1)
                 size_t disp = (size_t)((((b1 & 0x0F) << 8) | b2) + 1);
 
@@ -107,6 +104,9 @@ uint8_t *lz10_decompress(const uint8_t *src, size_t srcSize, size_t *outSize) {
                     free(dst);
                     return NULL;
                 }
+
+                // upper 4 bits: length (stored as len-3)
+                int length = (b1 >> 4) + 3;
 
                 uint8_t *src_copy = dp - disp;
 
