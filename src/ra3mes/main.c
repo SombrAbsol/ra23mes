@@ -225,7 +225,6 @@ int main(int argc, char **argv) {
     SetConsoleOutputCP(CP_UTF8); // ensure UTF-8 output on Windows
 #endif
 
-    // help
     if (argc >= 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h"))) {
         printf("ra3mes - MES text file converter for Pokémon Ranger: Guardian "
                "Signs\n");
