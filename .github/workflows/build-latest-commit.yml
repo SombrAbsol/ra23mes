@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-name: Build artifacts
+name: Build latest commit
 
 on:
   push:
