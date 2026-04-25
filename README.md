@@ -15,9 +15,9 @@ MES files are used to store texts in these two games. *Pokémon Ranger: Shadows 
 For more information on the MES format, see [the documentation](/docs/mes.md).
 
 ## Download
-|         | Linux | macOS | Windows |
-| ------- | ----- | ----- | ------- |
-| Latest  | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-linux.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-linux.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-macos.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-macos.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-windows.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-windows.zip) |
+|        | Linux | macOS | Windows |
+| ------ | ----- | ----- | ------- |
+| Latest | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-linux.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-linux.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-macos.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-macos.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-windows.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-windows.zip) |
 
 ## Usage
 ### Dumping the ROM
