@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: 2026 SombrAbsol
 #
 # SPDX-License-Identifier: MIT
-CC       := $(shell command -v clang >/dev/null 2>&1 && echo clang || echo gcc)
+CC    := $(shell command -v clang >/dev/null 2>&1 && echo clang || echo gcc)
+STRIP := $(shell command -v llvm-strip >/dev/null 2>&1 && echo llvm-strip || echo strip)
+
 CFLAGS   := -O3 -Wall -Wextra -Werror -MMD -MP
 CPPFLAGS := -I include
 LDFLAGS  :=
@@ -18,7 +20,7 @@ COMMON_SRCS := $(wildcard $(SRC_DIR)/common/*.c)
 COMMON_OBJS := $(patsubst $(SRC_DIR)/common/%.c,$(BUILD_DIR)/common.dir/%.o,$(COMMON_SRCS))
 COMMON_DEPS := $(COMMON_OBJS:.o=.d)
 
-.PHONY: all clean install uninstall $(TARGET_NAMES)
+.PHONY: all clean install uninstall release $(TARGET_NAMES)
 
 all: $(addprefix $(BUILD_DIR)/,$(addsuffix $(EXTENSION),$(TARGET_NAMES)))
 
@@ -48,9 +50,13 @@ $(BUILD_DIR)/common.dir:
 
 -include $(COMMON_DEPS)
 
+release: all
+	$(foreach t,$(TARGET_NAMES),$(STRIP) $(BUILD_DIR)/$(t)$(EXTENSION);)
+
 install: all
 	install -d $(DESTDIR)$(PREFIX)/bin
 	$(foreach t,$(TARGET_NAMES),install -m 755 $(BUILD_DIR)/$(t)$(EXTENSION) $(DESTDIR)$(PREFIX)/bin/$(t)$(EXTENSION);)
+	$(foreach t,$(TARGET_NAMES),$(STRIP) $(DESTDIR)$(PREFIX)/bin/$(t)$(EXTENSION);)
 
 uninstall:
 	$(foreach t,$(TARGET_NAMES),rm -f $(DESTDIR)$(PREFIX)/bin/$(t)$(EXTENSION);)

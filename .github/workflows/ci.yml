@@ -1,0 +1,144 @@
+# SPDX-FileCopyrightText: 2026 SombrAbsol
+#
+# SPDX-License-Identifier: MIT
+
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/ci.yml"
+      - "src/**"
+      - "include/**"
+      - "Makefile"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/ci.yml"
+      - "src/**"
+      - "include/**"
+      - "Makefile"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TARGET_RA2: ra2mes
+  TARGET_RA3: ra3mes
+
+jobs:
+  build:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-26, windows-2025]
+        include:
+          - os: ubuntu-24.04
+            artifact-suffix: linux
+            extension: ""
+
+          - os: macos-26
+            artifact-suffix: macos
+            extension: ""
+
+          - os: windows-2025
+            artifact-suffix: windows
+            extension: .exe
+
+    name: Build ${{ env.TARGET_RA2 }} and ${{ env.TARGET_RA3 }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install LLVM (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y llvm
+
+      - name: Install LLVM (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm
+          echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+
+      - name: Build ${{ env.TARGET_RA2 }} and ${{ env.TARGET_RA3 }}
+        run: make CC=clang release
+
+      - name: Upload ${{ env.TARGET_RA2 }} artefact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.TARGET_RA2 }}-${{ matrix.artifact-suffix }}
+          path: |
+            build/${{ env.TARGET_RA2 }}${{ matrix.extension }}
+            LICENSE
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload ${{ env.TARGET_RA3 }} artefact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.TARGET_RA3 }}-${{ matrix.artifact-suffix }}
+          path: |
+            build/${{ env.TARGET_RA3 }}${{ matrix.extension }}
+            LICENSE
+          if-no-files-found: error
+          retention-days: 7
+
+  release-latest:
+    name: Update latest release
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+
+    env:
+      TARGET_RA2: ra2mes
+      TARGET_RA3: ra3mes
+
+    steps:
+      - name: Download all artefacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts/
+
+      - name: Package ZIPs
+        run: |
+          for target in "$TARGET_RA2" "$TARGET_RA3"; do
+            for suffix in linux macos windows; do
+              dir="artifacts/${target}-${suffix}"
+              ext=""
+              [ "$suffix" = "windows" ] && ext=".exe"
+
+              mkdir -p "pkg/${target}/${suffix}"
+              mv "${dir}/build/${target}${ext}" "pkg/${target}/${suffix}/"
+              mv "${dir}/LICENSE"               "pkg/${target}/${suffix}/"
+
+              (cd "pkg/${target}/${suffix}" && zip "../../../${target}-${suffix}.zip" "${target}${ext}" LICENSE)
+            done
+          done
+
+      - name: Update latest release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: latest
+          name: Latest build
+          prerelease: true
+          body: |
+            Automated build from commit ${{ github.sha }}.
+          files: |
+            ${{ env.TARGET_RA2 }}-linux.zip
+            ${{ env.TARGET_RA2 }}-macos.zip
+            ${{ env.TARGET_RA2 }}-windows.zip
+            ${{ env.TARGET_RA3 }}-linux.zip
+            ${{ env.TARGET_RA3 }}-macos.zip
+            ${{ env.TARGET_RA3 }}-windows.zip

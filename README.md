@@ -5,19 +5,19 @@ SPDX-License-Identifier: MIT
 -->
 
 # ra23mes
-<a href="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest.yml"><img src="https://github.com/SombrAbsol/ra23mes/actions/workflows/build-latest.yml/badge.svg" alt="Latest"></a>
+<a href="https://github.com/SombrAbsol/ra23mes/actions/workflows/ci.yml"><img src="https://github.com/SombrAbsol/ra23mes/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 <a href="https://opensource.org/license/mit"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT (Expat)"></a>
 
 MES text file converters for *Pokémon Ranger: Shadows of Almia* and *Pokémon Ranger: Guardian Signs*.
 
-MES files are used to store texts in these two games. *Pokémon Ranger: Shadows of Almia* is the first game to use it, while *Pokémon Ranger: Guardian Signs* use a revised specification of this format, with different text storage and control characters.
+MES files are used to store texts in these two games. *Pokémon Ranger: Shadows of Almia* is the first game to use it, while *Pokémon Ranger: Guardian Signs* use a revised specification of this format, with different text storage and control characters. These tools allow you to convert MES files to JSON and vice versa. You can [download the latest builds](#download) or [build the programs from source](#building).
 
 For more information on the MES format, see [the documentation](/docs/mes.md).
 
 ## Download
 |        | Linux | macOS | Windows |
 | ------ | ----- | ----- | ------- |
-| Latest | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-linux.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-linux.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-macos.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-macos.zip) | [ra2mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra2mes-windows.zip)<br>[ra3mes](https://nightly.link/SombrAbsol/ra23mes/workflows/build-latest/main/ra3mes-windows.zip) |
+| Latest | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra2mes-linux.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra3mes-linux.zip) | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra2mes-macos.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra3mes-macos.zip) | [ra2mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra2mes-windows.zip)<br>[ra3mes](https://github.com/SombrAbsol/ra23mes/releases/latest/ra3mes-windows.zip) |
 
 ## Usage
 ### Dumping the ROM
@@ -58,9 +58,9 @@ The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed
 Dependencies: `clang` or `gcc`, and `make`
 1. If you don't already have them, install the dependencies
 2. Clone this repository by running `git clone https://github.com/SombrAbsol/ra23mes`, or [download the ZIP archive](https://github.com/SombrAbsol/ra23mes/archive/refs/heads/main.zip) and extract it
-3. Go to the repository directory and build the executables by running `make`. You can also run `make ra2mes` to only build ra2mes, or `make ra3mes` to only build ra3mes
+3. Go to the repository directory and build the executables by running `make`, or `make release` if you want to strip the generated builds. You can also run `make ra2mes` to only build ra2mes, or `make ra3mes` to only build ra3mes
 
-Operating systems that use the Unix file system (such as Linux and macOS) can then run `sudo make install` to install both ra2mes and ra3mes system-wide. `sudo make uninstall` removes them.
+Operating systems that use the Unix file system (such as Linux and macOS) can then run `sudo make install` to install both stripped ra2mes and ra3mes system-wide. `sudo make uninstall` removes them.
 
 ## Credits
 ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol).
