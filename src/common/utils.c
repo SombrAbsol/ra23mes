@@ -391,14 +391,6 @@ char *escape_json_string(const char *s, size_t len) {
         } else if (c == '\r') {
             *d++ = '\\';
             *d++ = 'r';
-        } else if (c < 0x20) {
-            static const char hex[] = "0123456789abcdef";
-            *d++ = '\\';
-            *d++ = 'u';
-            *d++ = '0';
-            *d++ = '0';
-            *d++ = hex[c >> 4];
-            *d++ = hex[c & 0xF];
         } else {
             *d++ = c;
         }
