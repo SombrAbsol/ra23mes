@@ -90,7 +90,7 @@ static int mes_to_json(const char *input, const char *output) {
 
     char **strings = calloc(count, sizeof(char *));
     if (!strings) {
-        fprintf(stderr, "mes_to_json: allocation failed\n");
+        fprintf(stderr, "mes_to_json: memory allocation failed\n");
         goto error;
     }
 
@@ -134,7 +134,7 @@ static int json_to_mes(const char *input, const char *output) {
 
     uint32_t *offsets = malloc(count * sizeof(uint32_t));
     if (!offsets) {
-        fprintf(stderr, "json_to_mes: allocation failed\n");
+        fprintf(stderr, "json_to_mes: memory allocation failed\n");
         goto error;
     }
 

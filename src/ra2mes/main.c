@@ -35,7 +35,7 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
 
     unsigned char *mem = malloc(cap);
     if (!mem) {
-        fprintf(stderr, "build_mes_buffer: allocation failed\n");
+        fprintf(stderr, "build_mes_buffer: memory allocation failed\n");
         goto error;
     }
 
@@ -186,7 +186,7 @@ static int mes_to_json(const char *input, const char *output) {
 
     char **strings = calloc(count, sizeof(char *));
     if (!strings) {
-        fprintf(stderr, "mes_to_json: allocation failed\n");
+        fprintf(stderr, "mes_to_json: memory allocation failed\n");
         goto error;
     }
 

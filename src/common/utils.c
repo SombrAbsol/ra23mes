@@ -71,10 +71,12 @@ char *xstrdup(const char *s) {
     if (!s)
         return NULL;
 
-    size_t len = strlen(s) + 1;
+    size_t len = strlen(s) + 1; // +1 for null terminator
     char *p = malloc(len);
     if (p)
         memcpy(p, s, len);
+    else
+        fprintf(stderr, "xstrdup: memory allocation failed\n");
 
     return p;
 }
@@ -190,7 +192,7 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
 
     char **strings = malloc(capacity * sizeof(char *));
     if (!strings) {
-        fprintf(stderr, "json_parse_strings: allocation failed\n");
+        fprintf(stderr, "json_parse_strings: memory allocation failed\n");
         return NULL;
     }
 
@@ -303,7 +305,7 @@ char **read_json_strings(const char *path, uint32_t *out_count) {
 
     char *json = malloc(size + 1);
     if (!json) {
-        fprintf(stderr, "read_json_strings: allocation failed\n");
+        fprintf(stderr, "read_json_strings: memory allocation failed\n");
         free(buf);
         return NULL;
     }
@@ -373,7 +375,7 @@ int write_json_strings(const char *output, char *const *strings,
 char *escape_json_string(const char *s, size_t len) {
     char *esc = malloc(len * 6 + 1); // worst case
     if (!esc) {
-        fprintf(stderr, "escape_json_string: allocation failed\n");
+        fprintf(stderr, "escape_json_string: memory allocation failed\n");
         return NULL;
     }
 
@@ -406,7 +408,7 @@ char *escape_json_string(const char *s, size_t len) {
 char *unescape_json_string(const char *start, size_t len) {
     char *out = malloc(len + 1);
     if (!out) {
-        fprintf(stderr, "unescape_json_string: allocation failed\n");
+        fprintf(stderr, "unescape_json_string: memory allocation failed\n");
         return NULL;
     }
 
