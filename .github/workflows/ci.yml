@@ -122,7 +122,7 @@ jobs:
               mv "${dir}/LICENSE"               "pkg/${target}/${suffix}/"
               mv "${dir}/README.md"             "pkg/${target}/${suffix}/"
 
-              (cd "pkg/${target}/${suffix}" && zip "../../../${target}-${suffix}.zip" "${target}${ext}" LICENSE)
+              (cd "pkg/${target}/${suffix}" && zip "../../../${target}-${suffix}.zip" "${target}${ext}" LICENSE README.md)
             done
           done
 
