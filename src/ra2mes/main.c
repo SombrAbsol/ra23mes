@@ -21,7 +21,8 @@
 /*
  * Build a MES-format binary buffer from a JSON file.
  */
-static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
+static unsigned char *build_mes_buffer(const char *input, size_t *outSize)
+{
     uint32_t count;
     char **strings = read_json_strings(input, &count);
     if (!strings) {
@@ -40,22 +41,22 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
     }
 
 // append data to the buffer, growing it if necessary
-#define EMIT(ptr, len)                                                         \
-    do {                                                                       \
-        if (size + len > cap) {                                                \
-            size_t newcap = cap * 2;                                           \
-            if (newcap < size + len)                                           \
-                newcap = size + len;                                           \
-            unsigned char *tmp = realloc(mem, newcap);                         \
-            if (!tmp) {                                                        \
-                fprintf(stderr, "build_mes_buffer: buffer growth failed\n");   \
-                goto error;                                                    \
-            }                                                                  \
-            mem = tmp;                                                         \
-            cap = newcap;                                                      \
-        }                                                                      \
-        memcpy(mem + size, (ptr), (len));                                      \
-        size += (len);                                                         \
+#define EMIT(ptr, len)                                                       \
+    do {                                                                     \
+        if (size + len > cap) {                                              \
+            size_t newcap = cap * 2;                                         \
+            if (newcap < size + len)                                         \
+                newcap = size + len;                                         \
+            unsigned char *tmp = realloc(mem, newcap);                       \
+            if (!tmp) {                                                      \
+                fprintf(stderr, "build_mes_buffer: buffer growth failed\n"); \
+                goto error;                                                  \
+            }                                                                \
+            mem = tmp;                                                       \
+            cap = newcap;                                                    \
+        }                                                                    \
+        memcpy(mem + size, (ptr), (len));                                    \
+        size += (len);                                                       \
     } while (0)
 
     unsigned char b[4];
@@ -69,8 +70,9 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
     EMIT(b, 4);
 
     size_t total = 8;
-    if (total != size)
+    if (total != size) {
         goto error;
+    }
 
     // write each string block: [block size][string][padding]
     for (uint32_t i = 0; i < count; i++) {
@@ -89,10 +91,11 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize) {
         EMIT(strings[i], len);
 
         // zero padding for 4-byte alignment
-        static const unsigned char zero_pad[4] = {0};
+        static const unsigned char zero_pad[4] = { 0 };
         uint32_t pad = pad4(len);
-        if (pad)
+        if (pad) {
             EMIT(zero_pad, pad);
+        }
 
         total += 4 + blk;
     }
@@ -114,41 +117,47 @@ error:
  * Validate whether a buffer matches the expected Pokémon Ranger 2 MES file
  * structure.
  */
-static int is_valid_mes(const uint8_t *buf, size_t size) {
-    if (size < 8) // minimum header size
+static int is_valid_mes(const uint8_t *buf, size_t size)
+{
+    if (size < 8) { // minimum header size
         return 0;
+    }
 
-    uint32_t total = read_u32_le(buf);     // total file size
+    uint32_t total = read_u32_le(buf); // total file size
     uint32_t count = read_u32_le(buf + 4); // number of strings
 
     // stored total size must match actual buffer size
-    if (total != size)
+    if (total != size) {
         return 0;
+    }
 
     uint32_t off = 8;
 
     // iterate over all string blocks and read them
     for (uint32_t i = 0; i < count; i++) {
-        if ((uint64_t)off + 4 > size)
+        if ((uint64_t)off + 4 > size) {
             return 0;
+        }
 
         uint32_t blk = read_u32_le(buf + off);
         off += 4;
 
-        if (blk == 0 || (uint64_t)off + blk > size)
+        if (blk == 0 || (uint64_t)off + blk > size) {
             return 0;
+        }
 
         off += blk;
     }
 
     // final offset must match file size
-    return (off == size);
+    return off == size;
 }
 
 /*
  * Convert a (raw or LZ10-compressed) Pokémon Ranger 2 MES file into JSON.
  */
-static int mes_to_json(const char *input, const char *output) {
+static int mes_to_json(const char *input, const char *output)
+{
     size_t size;
     unsigned char *buf = NULL;
     unsigned char *work = NULL;
@@ -198,10 +207,7 @@ static int mes_to_json(const char *input, const char *output) {
 
         strings[i] = xstrdup((char *)(work + off));
         if (!strings[i]) {
-            fprintf(stderr,
-                    "mes_to_json: memory allocation failed for string at index "
-                    "%u\n",
-                    i);
+            fprintf(stderr, "mes_to_json: memory allocation failed for string at index %u\n", i);
             goto error_strings;
         }
 
@@ -224,7 +230,8 @@ error:
 /*
  * Convert a JSON file into Pokémon Ranger 2 MES format.
  */
-static int json_to_mes(const char *input, const char *output) {
+static int json_to_mes(const char *input, const char *output)
+{
     size_t size;
     unsigned char *buf = build_mes_buffer(input, &size);
     if (!buf) {
@@ -248,7 +255,6 @@ static int json_to_mes(const char *input, const char *output) {
 
     fclose(f);
     free(buf);
-
     return EXIT_SUCCESS;
 }
 
@@ -256,12 +262,12 @@ static int json_to_mes(const char *input, const char *output) {
  * Convert a JSON file into Pokémon Ranger 2 MES format and compresses it using
  * LZ10.
  */
-static int json_to_meslz(const char *input, const char *output) {
+static int json_to_meslz(const char *input, const char *output)
+{
     size_t rawSize;
     unsigned char *raw = build_mes_buffer(input, &rawSize);
     if (!raw) {
-        fprintf(stderr, "json_to_meslz: failed to build MESLZ from '%s'\n",
-                input);
+        fprintf(stderr, "json_to_meslz: failed to build MESLZ from '%s'\n", input);
         return EXIT_FAILURE;
     }
 
@@ -296,7 +302,8 @@ static int json_to_meslz(const char *input, const char *output) {
 /*
  * Command-line interface.
  */
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8); // ensure UTF-8 output on Windows
 #endif
@@ -332,20 +339,23 @@ int main(int argc, char **argv) {
 
     if (strcmp(argv[1], "--to-json") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".json");
-        if (!output)
+        if (!output) {
             return EXIT_FAILURE;
+        }
         result = mes_to_json(input, output);
 
     } else if (strcmp(argv[1], "--to-mes") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".mes");
-        if (!output)
+        if (!output) {
             return EXIT_FAILURE;
+        }
         result = json_to_mes(input, output);
 
     } else if (strcmp(argv[1], "--to-meslz") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".meslz");
-        if (!output)
+        if (!output) {
             return EXIT_FAILURE;
+        }
         result = json_to_meslz(input, output);
 
     } else {

@@ -6,6 +6,8 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include "utils.h"
+
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -13,26 +15,23 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "utils.h"
-
 /*
  * Cross-platform wrapper around fopen. Use fopen_s on Windows, or fopen
  * otherwise.
  */
-FILE *xfopen(const char *path, const char *mode) {
+FILE *xfopen(const char *path, const char *mode)
+{
 #ifdef _WIN32
     FILE *f = NULL;
     if (fopen_s(&f, path, mode) != 0) {
-        fprintf(stderr, "xfopen: failed to open '%s' with mode '%s'\n", path,
-                mode);
+        fprintf(stderr, "xfopen: failed to open '%s' with mode '%s'\n", path, mode);
         return NULL;
     }
     return f;
 #else
     FILE *f = fopen(path, mode);
     if (!f) {
-        fprintf(stderr, "xfopen: failed to open '%s' with mode '%s'\n", path,
-                mode);
+        fprintf(stderr, "xfopen: failed to open '%s' with mode '%s'\n", path, mode);
     }
     return f;
 #endif
@@ -41,15 +40,19 @@ FILE *xfopen(const char *path, const char *mode) {
 /*
  * Read a 32-bit unsigned integer from a byte buffer in little-endian order.
  */
-uint32_t read_u32_le(const unsigned char *b) {
-    return (uint32_t)b[0] | ((uint32_t)b[1] << 8) | ((uint32_t)b[2] << 16) |
-           ((uint32_t)b[3] << 24);
+uint32_t read_u32_le(const unsigned char *b)
+{
+    return (uint32_t)b[0]
+        | ((uint32_t)b[1] << 8)
+        | ((uint32_t)b[2] << 16)
+        | ((uint32_t)b[3] << 24);
 }
 
 /*
  * Write a 32-bit unsigned integer into a byte buffer in little-endian order.
  */
-void write_u32_le(unsigned char *b, uint32_t v) {
+void write_u32_le(unsigned char *b, uint32_t v)
+{
     b[0] = (unsigned char)(v);
     b[1] = (unsigned char)(v >> 8);
     b[2] = (unsigned char)(v >> 16);
@@ -60,23 +63,27 @@ void write_u32_le(unsigned char *b, uint32_t v) {
  * Compute the number of padding bytes required to align 'n' to the next 4-byte
  * boundary.
  */
-uint32_t pad4(uint32_t n) {
+uint32_t pad4(uint32_t n)
+{
     return (4 - (n & 3)) & 3;
 }
 
 /*
  * strdup replacement using malloc.
  */
-char *xstrdup(const char *s) {
-    if (!s)
+char *xstrdup(const char *s)
+{
+    if (!s) {
         return NULL;
+    }
 
     size_t len = strlen(s) + 1; // +1 for null terminator
     char *p = malloc(len);
-    if (p)
+    if (p) {
         memcpy(p, s, len);
-    else
+    } else {
         fprintf(stderr, "xstrdup: memory allocation failed\n");
+    }
 
     return p;
 }
@@ -84,7 +91,8 @@ char *xstrdup(const char *s) {
 /*
  * Check whether a file exists at the given path.
  */
-int file_exists(const char *path) {
+int file_exists(const char *path)
+{
     struct stat st;
     return stat(path, &st) == 0;
 }
@@ -92,7 +100,8 @@ int file_exists(const char *path) {
 /*
  * Read an entire file into memory.
  */
-unsigned char *read_file(const char *path, size_t *out_size) {
+unsigned char *read_file(const char *path, size_t *out_size)
+{
     FILE *f = NULL;
     unsigned char *buf = NULL;
 
@@ -129,8 +138,7 @@ unsigned char *read_file(const char *path, size_t *out_size) {
 
     buf = malloc(size);
     if (!buf) {
-        fprintf(stderr, "read_file: memory allocation failed (%zu bytes)\n",
-                size);
+        fprintf(stderr, "read_file: memory allocation failed (%zu bytes)\n", size);
         goto error;
     }
 
@@ -141,13 +149,17 @@ unsigned char *read_file(const char *path, size_t *out_size) {
 
     fclose(f);
 
-    if (out_size)
+    if (out_size) {
         *out_size = size;
+    }
+
     return buf;
 
 error:
-    if (f)
+    if (f) {
         fclose(f);
+    }
+
     free(buf);
     return NULL;
 }
@@ -155,13 +167,15 @@ error:
 /*
  * Build a new file path by replacing or appending an extension.
  */
-char *make_output_path(const char *input, const char *ext) {
+char *make_output_path(const char *input, const char *ext)
+{
     const char *slash = strrchr(input, '/');
 
 #ifdef _WIN32
     const char *bslash = strrchr(input, '\\');
-    if (!slash || (bslash && bslash > slash))
+    if (!slash || (bslash && bslash > slash)) {
         slash = bslash;
+    }
 #endif
 
     const char *base = slash ? slash + 1 : input;
@@ -172,8 +186,9 @@ char *make_output_path(const char *input, const char *ext) {
     size_t ext_len = strlen(ext);
 
     char *out = malloc(dir_len + name_len + ext_len + 1);
-    if (!out)
+    if (!out) {
         return NULL;
+    }
 
     memcpy(out, input, dir_len);
     memcpy(out + dir_len, base, name_len);
@@ -185,7 +200,8 @@ char *make_output_path(const char *input, const char *ext) {
 /*
  * Extract all string values from a flat JSON object.
  */
-char **json_parse_strings(const char *json, uint32_t *out_count) {
+char **json_parse_strings(const char *json, uint32_t *out_count)
+{
     const char *p = json;
     uint32_t capacity = 16;
     uint32_t count = 0;
@@ -197,8 +213,9 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
     }
 
     while (*p) {
-        while (isspace((unsigned char)*p))
+        while (isspace((unsigned char)*p)) {
             p++;
+        }
 
         if (*p == '{' || *p == '}' || *p == ',') {
             p++;
@@ -224,20 +241,28 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
             }
             p++;
         }
-        if (!*p)
+
+        if (!*p) {
             break;
+        }
         p++;
 
-        while (isspace((unsigned char)*p))
+        while (isspace((unsigned char)*p)) {
             p++;
-        if (*p != ':')
+        }
+
+        if (*p != ':') {
             continue;
+        }
         p++;
 
-        while (isspace((unsigned char)*p))
+        while (isspace((unsigned char)*p)) {
             p++;
-        if (*p != '"')
+        }
+
+        if (*p != '"') {
             continue;
+        }
         p++;
 
         const char *start = p;
@@ -254,8 +279,9 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
             }
             p++;
         }
-        if (!*p)
+        if (!*p) {
             break;
+        }
 
         size_t len = (size_t)(p - start);
 
@@ -281,13 +307,16 @@ char **json_parse_strings(const char *json, uint32_t *out_count) {
         p++;
     }
 
-    if (out_count)
+    if (out_count) {
         *out_count = count;
+    }
     return strings;
 
 error:
-    for (uint32_t i = 0; i < count; i++)
+    for (uint32_t i = 0; i < count; i++) {
         free(strings[i]);
+    }
+
     free(strings);
     return NULL;
 }
@@ -295,7 +324,8 @@ error:
 /*
  * Read a JSON file and extracts all string values.
  */
-char **read_json_strings(const char *path, uint32_t *out_count) {
+char **read_json_strings(const char *path, uint32_t *out_count)
+{
     size_t size;
     unsigned char *buf = read_file(path, &size);
     if (!buf) {
@@ -323,8 +353,8 @@ char **read_json_strings(const char *path, uint32_t *out_count) {
 /*
  * Write an array of strings into a flat JSON object.
  */
-int write_json_strings(const char *output, char *const *strings,
-                       uint32_t count) {
+int write_json_strings(const char *output, char *const *strings, uint32_t count)
+{
     FILE *f = xfopen(output, "wb");
     if (!f) {
         fprintf(stderr, "write_json_strings: cannot open '%s'\n", output);
@@ -345,34 +375,33 @@ int write_json_strings(const char *output, char *const *strings,
      * MES files in vanilla games never contain more than 999 strings, so we
      * clamp the padding to a minimum of 3 digits for consistency.
      */
-    if (width < 3)
+    if (width < 3) {
         width = 3;
+    }
 
     for (uint32_t i = 0; i < count; i++) {
         char *esc = escape_json_string(strings[i], strlen(strings[i]));
         if (!esc) {
-            fprintf(stderr, "write_json_strings: escape failed for string %u\n",
-                    i);
+            fprintf(stderr, "write_json_strings: escape failed for string %u\n", i);
             fclose(f);
             return EXIT_FAILURE;
         }
 
-        fprintf(f, "  \"%0*u\": \"%s\"%s\n", width, i, esc,
-                (i + 1 < count) ? "," : "");
+        fprintf(f, "  \"%0*u\": \"%s\"%s\n", width, i, esc, (i + 1 < count) ? "," : "");
 
         free(esc);
     }
 
     fputs("}\n", f);
     fclose(f);
-
     return EXIT_SUCCESS;
 }
 
 /*
  * Escape a set of characters for JSON output.
  */
-char *escape_json_string(const char *s, size_t len) {
+char *escape_json_string(const char *s, size_t len)
+{
     char *esc = malloc(len * 6 + 1); // worst case
     if (!esc) {
         fprintf(stderr, "escape_json_string: memory allocation failed\n");
@@ -405,7 +434,8 @@ char *escape_json_string(const char *s, size_t len) {
 /*
  * Reverse escape_json_string for supported sequences.
  */
-char *unescape_json_string(const char *start, size_t len) {
+char *unescape_json_string(const char *start, size_t len)
+{
     char *out = malloc(len + 1);
     if (!out) {
         fprintf(stderr, "unescape_json_string: memory allocation failed\n");
@@ -417,12 +447,13 @@ char *unescape_json_string(const char *start, size_t len) {
     for (size_t i = 0; i < len; i++) {
         if (start[i] == '\\' && i + 1 < len) {
             i++;
-            if (start[i] == 'n')
+            if (start[i] == 'n') {
                 *d++ = '\n';
-            else if (start[i] == 'r')
+            } else if (start[i] == 'r') {
                 *d++ = '\r';
-            else
+            } else {
                 *d++ = start[i];
+            }
         } else {
             *d++ = start[i];
         }
@@ -435,12 +466,15 @@ char *unescape_json_string(const char *start, size_t len) {
 /*
  * Free an array of strings.
  */
-void free_string_array(char **strings, uint32_t count) {
-    if (!strings)
+void free_string_array(char **strings, uint32_t count)
+{
+    if (!strings) {
         return;
+    }
 
-    for (uint32_t i = 0; i < count; i++)
+    for (uint32_t i = 0; i < count; i++) {
         free(strings[i]);
+    }
 
     free(strings);
 }

@@ -2,19 +2,85 @@
 #
 # SPDX-License-Identifier: MIT
 ---
-AlignAfterOpenBracket: Align
-AlignOperands: true
+BasedOnStyle: WebKit
+LineEnding: LF
+ColumnLimit: 0
+
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveAssignments: None
+AlignConsecutiveBitFields: None
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: Consecutive
+AlignTrailingComments: false
+
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: false
-BreakBeforeBraces: Attach
-ColumnLimit: 80
-ContinuationIndentWidth: 4
-IndentWidth: 4
-Language: C
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+BinPackArguments: false
+BinPackParameters: false
+BitFieldColonSpacing: Both
+
+InsertBraces: true
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: true
+  AfterStruct: false
+  AfterUnion: false
+  BeforeElse: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: false
+
+AlwaysBreakAfterReturnType: None
+BreakBeforeBinaryOperators: All
+BreakBeforeTernaryOperators: true
+BreakStringLiterals: true
+
+DerivePointerAlignment: false
 PointerAlignment: Right
-SortIncludes: false
+
+ContinuationIndentWidth: 4
+IndentCaseBlocks: false
+IndentCaseLabels: false
+IndentGotoLabels: false
+IndentPPDirectives: None
+IndentWidth: 4
+
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '"(consts|constants|generated)/.*\.h"'
+    Priority: 1
+  - Regex: '"(struct_(decls|defs))/.*\.h"'
+    Priority: 2
+  - Regex: ".*"
+    Priority: 3
+
+InsertTrailingCommas: Wrapped
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtEOF: false
+MaxEmptyLinesToKeep: 1
+RemoveParentheses: ReturnStatement
+
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAroundPointerQualifiers: Default
 SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
 SpaceBeforeParens: ControlStatements
-SpacesInParentheses: false
-TabWidth: 4
-UseTab: Never
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesInContainerLiterals: true
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: -1
+SpacesInParens: Never
