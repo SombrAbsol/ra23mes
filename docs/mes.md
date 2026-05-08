@@ -10,36 +10,36 @@ Used to store texts in:
 * *Pokémon Ranger: Guardian Signs* (version 2)
 
 ## Format specifications
-### Common
+### Overview
 * 32-bit little-endian integer values
 * Encoded as raw byte strings
 * Always null-terminated
 * Followed by zero padding so that the total size is a multiple of 4 bytes
 
 ### Pokémon Ranger: Shadows of Almia
-Use version 1 of the MES format, where strings are stored sequentially, each preceded by a block size. They are read in order; offsets are implicit.
+This game uses version 1 of the MES format, where strings are stored sequentially, each preceded by a block size. They are read in order; offsets are implicit.
 ```rust
 {
   u32 total_size // total file size in bytes
-  u32 count // number of strings
+  u32 count      // number of strings
 }
 ```
 
 Repeat count times:
 ```rust
 {
-  u32 block_size // string length + null terminator + padding bytes
-  char string[] // null-terminated
+  u32  block_size // string length + null terminator + padding bytes
+  char string[]   // null-terminated
   // zero padding bytes
 }
 ```
 
 ### Pokémon Ranger: Guardian Signs
-Use version 2 of the MES format, where strings are stored in a data section and referenced sequentially via an offset table.
+This game uses version 2 of the MES format, where strings are stored in a data section and referenced sequentially via an offset table.
 ```rust
 {
   u32 total_size // total file size in bytes
-  u32 count // number of strings
+  u32 count      // number of strings
 }
 ```
 
@@ -48,7 +48,7 @@ Offset table begins at byte `0x08` and count entries. Offsets are absolute, rela
 {
   u32 offset[0]
   u32 offset[1]
-  // ...
+  // …
   u32 offset[n-1]
 }
 ```
