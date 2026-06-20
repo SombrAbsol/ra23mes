@@ -58,7 +58,14 @@ The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed
 Dependencies: `clang` or `gcc`, and `make`
 1. If you don't already have them, install the dependencies
 2. Clone this repository by running `git clone https://github.com/SombrAbsol/ra23mes`, or [download the ZIP archive](https://github.com/SombrAbsol/ra23mes/archive/refs/heads/main.zip) and extract it
-3. Go to the repository directory and build the executables by running `make`, or `make release` if you want to strip the generated builds. You can also run `make ra2mes` to only build ra2mes, or `make ra3mes` to only build ra3mes
+3. Go to the repository directory and build the programs by running `make`. You can also run `make ra2mes` to only build ra2mes, or `make ra3mes` to only build ra3mes
+
+> [!TIP]
+> Running `make` or `make release` will generate release builds. Those available to download are built using this recipe. If you want to generate native or debug builds, run `make native` or `make debug`. Native builds are optimized for your specific CPU for better performance but may not be compatible with other systems, while debug builds include debugging symbols that help diagnose issues but run slower.
+>
+> Operating systems that use the Unix file system (such as Linux and macOS) can run `sudo make install` to install ra2mes and ra3mes system-wide, preferably after building release or native builds. Use `sudo make uninstall` to remove them.
+>
+> If you need to rebuild the programs, run `make clean` or delete the `build` directory.
 
 Operating systems that use the Unix file system (such as Linux and macOS) can then run `sudo make install` to install both stripped ra2mes and ra3mes system-wide. `sudo make uninstall` removes them.
 

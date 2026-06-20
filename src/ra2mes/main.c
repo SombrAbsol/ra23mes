@@ -359,7 +359,7 @@ int main(int argc, char **argv)
         result = json_to_meslz(input, output);
 
     } else {
-        fprintf(stderr, "Unknown option: %s\n", argv[1]);
+        fprintf(stderr, "Unknown option: '%s'\n", argv[1]);
         fprintf(stderr, "Try '%s --help' for more information.\n", argv[0]);
     }
 
