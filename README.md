@@ -67,8 +67,6 @@ Dependencies: `clang` or `gcc`, and `make`
 >
 > If you need to rebuild the programs, run `make clean` or delete the `build` directory.
 
-Operating systems that use the Unix file system (such as Linux and macOS) can then run `sudo make install` to install both stripped ra2mes and ra3mes system-wide. `sudo make uninstall` removes them.
-
 ## Credits
 ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol).
 
