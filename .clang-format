@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2026 SombrAbsol
 #
 # SPDX-License-Identifier: MIT
+
 ---
 BasedOnStyle: WebKit
 LineEnding: LF
-ColumnLimit: 0
+ColumnLimit: 80
 
 AlignAfterOpenBracket: DontAlign
 AlignConsecutiveAssignments: None
@@ -56,15 +57,13 @@ IndentWidth: 4
 
 SortIncludes: CaseSensitive
 IncludeBlocks: Regroup
+
 IncludeCategories:
-  - Regex: '"(consts|constants|generated)/.*\.h"'
-    Priority: 1
-  - Regex: '"(struct_(decls|defs))/.*\.h"'
+  - Regex: '^".*"'
     Priority: 2
-  - Regex: ".*"
+  - Regex: '^<.*>'
     Priority: 3
 
-InsertTrailingCommas: Wrapped
 InsertNewlineAtEOF: true
 KeepEmptyLinesAtEOF: false
 MaxEmptyLinesToKeep: 1

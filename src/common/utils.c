@@ -24,14 +24,16 @@ FILE *xfopen(const char *path, const char *mode)
 #ifdef _WIN32
     FILE *f = NULL;
     if (fopen_s(&f, path, mode) != 0) {
-        fprintf(stderr, "xfopen: failed to open '%s' with mode '%s'\n", path, mode);
+        fprintf(
+            stderr, "xfopen: failed to open '%s' with mode '%s'\n", path, mode);
         return NULL;
     }
     return f;
 #else
     FILE *f = fopen(path, mode);
     if (!f) {
-        fprintf(stderr, "xfopen: failed to open '%s' with mode '%s'\n", path, mode);
+        fprintf(
+            stderr, "xfopen: failed to open '%s' with mode '%s'\n", path, mode);
     }
     return f;
 #endif
@@ -42,9 +44,7 @@ FILE *xfopen(const char *path, const char *mode)
  */
 uint32_t read_u32_le(const unsigned char *b)
 {
-    return (uint32_t)b[0]
-        | ((uint32_t)b[1] << 8)
-        | ((uint32_t)b[2] << 16)
+    return (uint32_t)b[0] | ((uint32_t)b[1] << 8) | ((uint32_t)b[2] << 16)
         | ((uint32_t)b[3] << 24);
 }
 
@@ -138,7 +138,8 @@ unsigned char *read_file(const char *path, size_t *out_size)
 
     buf = malloc(size);
     if (!buf) {
-        fprintf(stderr, "read_file: memory allocation failed (%zu bytes)\n", size);
+        fprintf(
+            stderr, "read_file: memory allocation failed (%zu bytes)\n", size);
         goto error;
     }
 
@@ -382,12 +383,18 @@ int write_json_strings(const char *output, char *const *strings, uint32_t count)
     for (uint32_t i = 0; i < count; i++) {
         char *esc = escape_json_string(strings[i], strlen(strings[i]));
         if (!esc) {
-            fprintf(stderr, "write_json_strings: escape failed for string %u\n", i);
+            fprintf(
+                stderr, "write_json_strings: escape failed for string %u\n", i);
             fclose(f);
             return EXIT_FAILURE;
         }
 
-        fprintf(f, "  \"%0*u\": \"%s\"%s\n", width, i, esc, (i + 1 < count) ? "," : "");
+        fprintf(f,
+            "  \"%0*u\": \"%s\"%s\n",
+            width,
+            i,
+            esc,
+            (i + 1 < count) ? "," : "");
 
         free(esc);
     }

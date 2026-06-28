@@ -64,7 +64,8 @@ char **read_json_strings(const char *path, uint32_t *out_count);
 /*
  * Write an array of strings into a flat JSON object
  */
-int write_json_strings(const char *output, char *const *strings, uint32_t count);
+int write_json_strings(
+    const char *output, char *const *strings, uint32_t count);
 
 /*
  * (Un)escape a set of characters for JSON output.

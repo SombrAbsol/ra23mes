@@ -6,6 +6,8 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include "utils.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,8 +16,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include "utils.h"
 
 /*
  * Validate whether a buffer matches the expected Pokémon Ranger 3 MES file
@@ -109,7 +109,10 @@ static int mes_to_json(const char *input, const char *output)
 
         strings[i] = xstrdup((char *)(buf + off));
         if (!strings[i]) {
-            fprintf(stderr, "mes_to_json: memory allocation failed for string at index %u\n", i);
+            fprintf(stderr,
+                "mes_to_json: memory allocation failed for string at index "
+                "%u\n",
+                i);
             goto error_strings;
         }
     }
@@ -170,12 +173,16 @@ static int json_to_mes(const char *input, const char *output)
     // write header
     write_u32_le(b, cur);
     if (fwrite(b, 1, 4, f) != 4) {
-        fprintf(stderr, "json_to_mes: failed to write total size to '%s'\n", output);
+        fprintf(stderr,
+            "json_to_mes: failed to write total size to '%s'\n",
+            output);
         goto error_io;
     }
     write_u32_le(b, count);
     if (fwrite(b, 1, 4, f) != 4) {
-        fprintf(stderr, "json_to_mes: failed to write string count to '%s'\n", output);
+        fprintf(stderr,
+            "json_to_mes: failed to write string count to '%s'\n",
+            output);
         goto error_io;
     }
 
@@ -192,7 +199,10 @@ static int json_to_mes(const char *input, const char *output)
     for (uint32_t i = 0; i < count; i++) {
         uint32_t len = (uint32_t)strlen(strings[i]) + 1;
         if (fwrite(strings[i], 1, len, f) != len) {
-            fprintf(stderr, "json_to_mes: failed to write string %u to '%s'\n", i, output);
+            fprintf(stderr,
+                "json_to_mes: failed to write string %u to '%s'\n",
+                i,
+                output);
             goto error_io;
         }
 
@@ -200,7 +210,10 @@ static int json_to_mes(const char *input, const char *output)
         static const unsigned char zero_pad[4] = { 0 };
         uint32_t pad = pad4(len);
         if (pad && fwrite(zero_pad, 1, pad, f) != pad) {
-            fprintf(stderr, "json_to_mes: failed to write padding for string %u to '%s'\n", i, output);
+            fprintf(stderr,
+                "json_to_mes: failed to write padding for string %u to '%s'\n",
+                i,
+                output);
             goto error_io;
         }
     }
@@ -228,7 +241,8 @@ int main(int argc, char **argv)
 #endif
 
     if (argc >= 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h"))) {
-        printf("ra3mes - MES text file converter for Pokémon Ranger: Guardian Signs\n");
+        printf("ra3mes - MES text file converter for Pokémon Ranger: Guardian "
+               "Signs\n");
         printf("Copyright (c) 2026 SombrAbsol\n\n");
         printf("Usage:\n");
         printf("  %s --to-json <in.mes>  [out.json]\n", argv[0]);

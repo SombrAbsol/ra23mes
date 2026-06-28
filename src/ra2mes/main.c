@@ -41,22 +41,22 @@ static unsigned char *build_mes_buffer(const char *input, size_t *outSize)
     }
 
 // append data to the buffer, growing it if necessary
-#define EMIT(ptr, len)                                                       \
-    do {                                                                     \
-        if (size + len > cap) {                                              \
-            size_t newcap = cap * 2;                                         \
-            if (newcap < size + len)                                         \
-                newcap = size + len;                                         \
-            unsigned char *tmp = realloc(mem, newcap);                       \
-            if (!tmp) {                                                      \
-                fprintf(stderr, "build_mes_buffer: buffer growth failed\n"); \
-                goto error;                                                  \
-            }                                                                \
-            mem = tmp;                                                       \
-            cap = newcap;                                                    \
-        }                                                                    \
-        memcpy(mem + size, (ptr), (len));                                    \
-        size += (len);                                                       \
+#define EMIT(ptr, len)                                                         \
+    do {                                                                       \
+        if (size + len > cap) {                                                \
+            size_t newcap = cap * 2;                                           \
+            if (newcap < size + len)                                           \
+                newcap = size + len;                                           \
+            unsigned char *tmp = realloc(mem, newcap);                         \
+            if (!tmp) {                                                        \
+                fprintf(stderr, "build_mes_buffer: buffer growth failed\n");   \
+                goto error;                                                    \
+            }                                                                  \
+            mem = tmp;                                                         \
+            cap = newcap;                                                      \
+        }                                                                      \
+        memcpy(mem + size, (ptr), (len));                                      \
+        size += (len);                                                         \
     } while (0)
 
     unsigned char b[4];
@@ -207,7 +207,10 @@ static int mes_to_json(const char *input, const char *output)
 
         strings[i] = xstrdup((char *)(work + off));
         if (!strings[i]) {
-            fprintf(stderr, "mes_to_json: memory allocation failed for string at index %u\n", i);
+            fprintf(stderr,
+                "mes_to_json: memory allocation failed for string at index "
+                "%u\n",
+                i);
             goto error_strings;
         }
 
@@ -267,7 +270,8 @@ static int json_to_meslz(const char *input, const char *output)
     size_t rawSize;
     unsigned char *raw = build_mes_buffer(input, &rawSize);
     if (!raw) {
-        fprintf(stderr, "json_to_meslz: failed to build MESLZ from '%s'\n", input);
+        fprintf(
+            stderr, "json_to_meslz: failed to build MESLZ from '%s'\n", input);
         return EXIT_FAILURE;
     }
 
