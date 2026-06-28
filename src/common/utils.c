@@ -9,6 +9,7 @@
 #include "utils.h"
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,7 +92,7 @@ char *xstrdup(const char *s)
 /*
  * Check whether a file exists at the given path.
  */
-int file_exists(const char *path)
+bool file_exists(const char *path)
 {
     struct stat st;
     return stat(path, &st) == 0;
@@ -231,12 +232,12 @@ char **json_parse_strings(const char *json, uint32_t *out_count)
 
         // skip key
         p++;
-        int escaped = 0;
+        bool escaped = false;
         while (*p) {
             if (escaped) {
-                escaped = 0;
+                escaped = false;
             } else if (*p == '\\') {
-                escaped = 1;
+                escaped = true;
             } else if (*p == '"') {
                 break;
             }
@@ -269,12 +270,12 @@ char **json_parse_strings(const char *json, uint32_t *out_count)
         const char *start = p;
 
         // read value string
-        escaped = 0;
+        escaped = false;
         while (*p) {
             if (escaped) {
-                escaped = 0;
+                escaped = false;
             } else if (*p == '\\') {
-                escaped = 1;
+                escaped = true;
             } else if (*p == '"') {
                 break;
             }
@@ -354,12 +355,13 @@ char **read_json_strings(const char *path, uint32_t *out_count)
 /*
  * Write an array of strings into a flat JSON object.
  */
-int write_json_strings(const char *output, char *const *strings, uint32_t count)
+bool write_json_strings(
+    const char *output, char *const *strings, uint32_t count)
 {
     FILE *f = xfopen(output, "wb");
     if (!f) {
         fprintf(stderr, "write_json_strings: cannot open '%s'\n", output);
-        return EXIT_FAILURE;
+        return false;
     }
 
     fputs("{\n", f);
@@ -386,7 +388,7 @@ int write_json_strings(const char *output, char *const *strings, uint32_t count)
             fprintf(
                 stderr, "write_json_strings: escape failed for string %u\n", i);
             fclose(f);
-            return EXIT_FAILURE;
+            return false;
         }
 
         fprintf(f,
@@ -401,7 +403,7 @@ int write_json_strings(const char *output, char *const *strings, uint32_t count)
 
     fputs("}\n", f);
     fclose(f);
-    return EXIT_SUCCESS;
+    return true;
 }
 
 /*

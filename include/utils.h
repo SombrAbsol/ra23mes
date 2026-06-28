@@ -9,6 +9,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -39,7 +40,7 @@ char *xstrdup(const char *s);
 /*
  * Check whether a file exists at the given path.
  */
-int file_exists(const char *path);
+bool file_exists(const char *path);
 
 /*
  * Read an entire file into memory.
@@ -64,7 +65,7 @@ char **read_json_strings(const char *path, uint32_t *out_count);
 /*
  * Write an array of strings into a flat JSON object
  */
-int write_json_strings(
+bool write_json_strings(
     const char *output, char *const *strings, uint32_t count);
 
 /*

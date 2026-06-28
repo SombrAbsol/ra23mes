@@ -8,6 +8,7 @@
 
 #include "lz10.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -17,13 +18,13 @@
  * Perform an heuristic check to determine if a buffer resembles
  * LZ10-compressed data. This is not a full validation.
  */
-int looks_like_lz10(const uint8_t *buf, size_t size)
+bool looks_like_lz10(const uint8_t *buf, size_t size)
 {
     if (!buf || size < 4) {
-        return 0;
+        return false;
     }
     if (buf[0] != 0x10) {
-        return 0;
+        return false;
     }
 
     // 24-bit little-endian decompressed size

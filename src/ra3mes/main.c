@@ -8,6 +8,7 @@
 
 #include "utils.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,10 +22,10 @@
  * Validate whether a buffer matches the expected Pokémon Ranger 3 MES file
  * structure.
  */
-static int is_valid_mes(const uint8_t *buf, size_t size)
+static bool is_valid_mes(const uint8_t *buf, size_t size)
 {
     if (size < 8) { // minimum header size
-        return 0;
+        return false;
     }
 
     uint32_t total = read_u32_le(buf); // total file size
@@ -32,12 +33,12 @@ static int is_valid_mes(const uint8_t *buf, size_t size)
 
     // stored total size must match actual buffer size
     if (total != size) {
-        return 0;
+        return false;
     }
 
     // offset table must fit within file
     if ((uint64_t)8 + (uint64_t)count * 4 > size) {
-        return 0;
+        return false;
     }
 
     uint32_t header = 8 + count * 4;
@@ -47,12 +48,12 @@ static int is_valid_mes(const uint8_t *buf, size_t size)
 
         // offset must point past the header and offset table
         if (off < header) {
-            return 0;
+            return false;
         }
 
         // offset must be within file bounds
         if (off >= size) {
-            return 0;
+            return false;
         }
 
         size_t max;
@@ -61,7 +62,7 @@ static int is_valid_mes(const uint8_t *buf, size_t size)
 
             // offsets must be strictly increasing
             if (next <= off) {
-                return 0;
+                return false;
             }
 
             max = next - off;
@@ -71,17 +72,17 @@ static int is_valid_mes(const uint8_t *buf, size_t size)
 
         // string must have a null terminator within its bounds
         if (strnlen((const char *)(buf + off), max) == max) {
-            return 0;
+            return false;
         }
     }
 
-    return 1;
+    return true;
 }
 
 /*
  * Convert a Pokémon Ranger 3 MES file into JSON.
  */
-static int mes_to_json(const char *input, const char *output)
+static bool mes_to_json(const char *input, const char *output)
 {
     size_t size;
     unsigned char *buf = read_file(input, &size);
@@ -117,29 +118,29 @@ static int mes_to_json(const char *input, const char *output)
         }
     }
 
-    int res = write_json_strings(output, strings, count);
+    bool ok = write_json_strings(output, strings, count);
 
     free_string_array(strings, count);
     free(buf);
-    return res;
+    return ok;
 
 error_strings:
     free_string_array(strings, count);
 error:
     free(buf);
-    return EXIT_FAILURE;
+    return false;
 }
 
 /*
  * Convert a JSON file into Pokémon Ranger 3 MES format.
  */
-static int json_to_mes(const char *input, const char *output)
+static bool json_to_mes(const char *input, const char *output)
 {
     uint32_t count;
     char **strings = read_json_strings(input, &count);
     if (!strings) {
         fprintf(stderr, "json_to_mes: failed to parse JSON '%s'\n", input);
-        return EXIT_FAILURE;
+        return false;
     }
 
     uint32_t *offsets = malloc(count * sizeof(uint32_t));
@@ -221,14 +222,14 @@ static int json_to_mes(const char *input, const char *output)
     fclose(f);
     free(offsets);
     free_string_array(strings, count);
-    return EXIT_SUCCESS;
+    return true;
 
 error_io:
     fclose(f);
 error:
     free(offsets);
     free_string_array(strings, count);
-    return EXIT_FAILURE;
+    return false;
 }
 
 /*
@@ -263,7 +264,7 @@ int main(int argc, char **argv)
     }
 
     char *output = NULL;
-    int result = EXIT_FAILURE;
+    bool ok = false;
 
     const char *input = argv[2];
     const char *outarg = (argc == 4) ? argv[3] : NULL;
@@ -275,7 +276,7 @@ int main(int argc, char **argv)
             return EXIT_FAILURE;
         }
 
-        result = mes_to_json(input, output);
+        ok = mes_to_json(input, output);
 
     } else if (strcmp(argv[1], "--to-mes") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".mes");
@@ -284,7 +285,7 @@ int main(int argc, char **argv)
             return EXIT_FAILURE;
         }
 
-        result = json_to_mes(input, output);
+        ok = json_to_mes(input, output);
 
     } else {
         fprintf(stderr, "Unknown option: '%s'\n", argv[1]);
@@ -292,5 +293,5 @@ int main(int argc, char **argv)
     }
 
     free(output);
-    return result;
+    return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

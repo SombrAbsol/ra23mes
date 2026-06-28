@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -117,10 +118,10 @@ error:
  * Validate whether a buffer matches the expected Pokémon Ranger 2 MES file
  * structure.
  */
-static int is_valid_mes(const uint8_t *buf, size_t size)
+static bool is_valid_mes(const uint8_t *buf, size_t size)
 {
     if (size < 8) { // minimum header size
-        return 0;
+        return false;
     }
 
     uint32_t total = read_u32_le(buf); // total file size
@@ -128,7 +129,7 @@ static int is_valid_mes(const uint8_t *buf, size_t size)
 
     // stored total size must match actual buffer size
     if (total != size) {
-        return 0;
+        return false;
     }
 
     uint32_t off = 8;
@@ -136,14 +137,14 @@ static int is_valid_mes(const uint8_t *buf, size_t size)
     // iterate over all string blocks and read them
     for (uint32_t i = 0; i < count; i++) {
         if ((uint64_t)off + 4 > size) {
-            return 0;
+            return false;
         }
 
         uint32_t blk = read_u32_le(buf + off);
         off += 4;
 
         if (blk == 0 || (uint64_t)off + blk > size) {
-            return 0;
+            return false;
         }
 
         off += blk;
@@ -156,7 +157,7 @@ static int is_valid_mes(const uint8_t *buf, size_t size)
 /*
  * Convert a (raw or LZ10-compressed) Pokémon Ranger 2 MES file into JSON.
  */
-static int mes_to_json(const char *input, const char *output)
+static bool mes_to_json(const char *input, const char *output)
 {
     size_t size;
     unsigned char *buf = NULL;
@@ -217,62 +218,62 @@ static int mes_to_json(const char *input, const char *output)
         off += blk;
     }
 
-    int res = write_json_strings(output, strings, count);
+    bool ok = write_json_strings(output, strings, count);
 
     free_string_array(strings, count);
     free(work);
-    return res;
+    return ok;
 
 error_strings:
     free_string_array(strings, count);
 error:
     free(work);
-    return EXIT_FAILURE;
+    return false;
 }
 
 /*
  * Convert a JSON file into Pokémon Ranger 2 MES format.
  */
-static int json_to_mes(const char *input, const char *output)
+static bool json_to_mes(const char *input, const char *output)
 {
     size_t size;
     unsigned char *buf = build_mes_buffer(input, &size);
     if (!buf) {
         fprintf(stderr, "json_to_mes: failed to build MES from '%s'\n", input);
-        return EXIT_FAILURE;
+        return false;
     }
 
     FILE *f = xfopen(output, "wb");
     if (!f) {
         fprintf(stderr, "json_to_mes: cannot open '%s'\n", output);
         free(buf);
-        return EXIT_FAILURE;
+        return false;
     }
 
     if (fwrite(buf, 1, size, f) != size) {
         fprintf(stderr, "json_to_mes: write failed\n");
         fclose(f);
         free(buf);
-        return EXIT_FAILURE;
+        return false;
     }
 
     fclose(f);
     free(buf);
-    return EXIT_SUCCESS;
+    return true;
 }
 
 /*
  * Convert a JSON file into Pokémon Ranger 2 MES format and compresses it using
  * LZ10.
  */
-static int json_to_meslz(const char *input, const char *output)
+static bool json_to_meslz(const char *input, const char *output)
 {
     size_t rawSize;
     unsigned char *raw = build_mes_buffer(input, &rawSize);
     if (!raw) {
         fprintf(
             stderr, "json_to_meslz: failed to build MESLZ from '%s'\n", input);
-        return EXIT_FAILURE;
+        return false;
     }
 
     size_t cmpSize;
@@ -281,26 +282,26 @@ static int json_to_meslz(const char *input, const char *output)
 
     if (!cmp) {
         fprintf(stderr, "json_to_meslz: compression failed\n");
-        return EXIT_FAILURE;
+        return false;
     }
 
     FILE *f = xfopen(output, "wb");
     if (!f) {
         fprintf(stderr, "json_to_meslz: cannot open '%s'\n", output);
         free(cmp);
-        return EXIT_FAILURE;
+        return false;
     }
 
     if (fwrite(cmp, 1, cmpSize, f) != cmpSize) {
         fprintf(stderr, "json_to_meslz: write failed\n");
         fclose(f);
         free(cmp);
-        return EXIT_FAILURE;
+        return false;
     }
 
     fclose(f);
     free(cmp);
-    return EXIT_SUCCESS;
+    return true;
 }
 
 /*
@@ -336,7 +337,7 @@ int main(int argc, char **argv)
     }
 
     char *output = NULL;
-    int result = EXIT_FAILURE;
+    bool ok = false;
 
     const char *input = argv[2];
     const char *outarg = (argc == 4) ? argv[3] : NULL;
@@ -346,21 +347,21 @@ int main(int argc, char **argv)
         if (!output) {
             return EXIT_FAILURE;
         }
-        result = mes_to_json(input, output);
+        ok = mes_to_json(input, output);
 
     } else if (strcmp(argv[1], "--to-mes") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".mes");
         if (!output) {
             return EXIT_FAILURE;
         }
-        result = json_to_mes(input, output);
+        ok = json_to_mes(input, output);
 
     } else if (strcmp(argv[1], "--to-meslz") == 0) {
         output = outarg ? xstrdup(outarg) : make_output_path(input, ".meslz");
         if (!output) {
             return EXIT_FAILURE;
         }
-        result = json_to_meslz(input, output);
+        ok = json_to_meslz(input, output);
 
     } else {
         fprintf(stderr, "Unknown option: '%s'\n", argv[1]);
@@ -368,5 +369,5 @@ int main(int argc, char **argv)
     }
 
     free(output);
-    return result;
+    return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

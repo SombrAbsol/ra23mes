@@ -9,6 +9,7 @@
 #ifndef LZ10_H
 #define LZ10_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -16,7 +17,7 @@
  * Perform an heuristic check to determine if a buffer resembles
  * LZ10-compressed data. This is not a full validation.
  */
-int looks_like_lz10(const uint8_t *buf, size_t size);
+bool looks_like_lz10(const uint8_t *buf, size_t size);
 
 /*
  * Decompress an LZ10 buffer.
