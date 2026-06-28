@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 SombrAbsol
 #
 # SPDX-License-Identifier: MIT
+
 CC    := $(shell command -v clang >/dev/null 2>&1 && echo clang || echo gcc)
 STRIP := $(shell command -v llvm-strip >/dev/null 2>&1 && echo llvm-strip || echo strip)
 
