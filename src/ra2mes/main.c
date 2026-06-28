@@ -6,6 +6,9 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include "lz10.h"
+#include "utils.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -15,9 +18,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include "lz10.h"
-#include "utils.h"
 
 /*
  * Build a MES-format binary buffer from a JSON file.
