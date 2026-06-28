@@ -246,9 +246,12 @@ int main(int argc, char **argv)
                "Signs\n");
         printf("Copyright (c) 2026 SombrAbsol\n\n");
         printf("Usage:\n");
-        printf("  %s --to-json <in.mes>  [out.json]\n", argv[0]);
-        printf("  %s --to-mes  <in.json> [out.mes]\n", argv[0]);
-        printf("  %s -h|--help\n", argv[0]);
+        printf("  %s --to-json <in.mes>  [out.json]  convert MES to JSON\n",
+            argv[0]);
+        printf("  %s --to-mes  <in.json> [out.mes]   convert JSON to MES\n",
+            argv[0]);
+        printf(
+            "  %s -h|--help                       show this help\n", argv[0]);
         return EXIT_SUCCESS;
     }
 
