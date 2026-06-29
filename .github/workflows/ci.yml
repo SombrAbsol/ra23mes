@@ -74,7 +74,13 @@ jobs:
           echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
 
       - name: Build ${{ env.TARGET_RA2 }} and ${{ env.TARGET_RA3 }}
-        run: make CC=clang release
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            make CC=clang STATIC=0 release
+          else
+            make CC=clang STATIC=1 release
+          fi
 
       - name: Upload ${{ env.TARGET_RA2 }} artefact
         uses: actions/upload-artifact@v7

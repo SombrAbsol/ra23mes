@@ -10,9 +10,16 @@ HEADER_DIR := include
 BUILD_DIR  := build
 PREFIX     := /usr/local
 
+STATIC ?= 0
+ifeq ($(OS),Darwin)
+ifeq ($(STATIC),1)
+$(error Static linking is not supported on macOS)
+endif
+endif
+
 CFLAGS   := -Wall -Wextra -Werror
 CPPFLAGS := -I $(HEADER_DIR)
-LDFLAGS  :=
+LDFLAGS   = $(if $(filter 1,$(STATIC)),-static)
 LDLIBS   :=
 DEPFLAGS := -MMD -MP
 

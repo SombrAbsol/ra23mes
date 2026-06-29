@@ -12,7 +12,7 @@ MES text file converters for *Pokémon Ranger: Shadows of Almia* and *Pokémon R
 
 MES files are used to store texts in these two games. *Pokémon Ranger: Shadows of Almia* is the first game to use it, while *Pokémon Ranger: Guardian Signs* use a revised specification of this format, with different text storage and control characters. These tools allow you to convert MES files to JSON and vice versa. You can [download the latest builds](#download) or [build the programs from source](#building).
 
-For more information on the MES format, see [the documentation](/docs/mes.md).
+For more information about the MES format, see [the documentation](/docs/mes.md).
 
 ## Download
 |        | Linux | macOS | Windows |
@@ -55,15 +55,19 @@ The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed
 * `ra2mes --to-meslz in.json` will compress `in.json` and output an LZ10-compressed MES file
 
 ## Building
-Dependencies: `clang` or `gcc`, and `make`
+### Dependencies
+* `clang` or `gcc`
+* `make`
+
+### Steps
 1. If you don't already have them, install the dependencies
 2. Clone this repository by running `git clone https://github.com/SombrAbsol/ra23mes`, or [download the ZIP archive](https://github.com/SombrAbsol/ra23mes/archive/refs/heads/main.zip) and extract it
 3. Go to the repository directory and build the programs by running `make`. You can also run `make ra2mes` to only build ra2mes, or `make ra3mes` to only build ra3mes
 
 > [!TIP]
-> Running `make` or `make release` will generate release builds. Those available to download are built using this recipe. If you want to generate native or debug builds, run `make native` or `make debug`. Native builds are optimized for your specific CPU for better performance but may not be compatible with other systems, while debug builds include debugging symbols that help diagnose issues but run slower.
+> Running `make` or `make release` will generate release builds. The downloadable releases are static builds generated using this recipe. If you want to generate native or debug builds, run `make native` or `make debug`. Native builds are optimized for your specific CPU for better performance but may not be compatible with other systems, while debug builds include debugging symbols that help diagnose issues but run slower.
 >
-> Operating systems that use the Unix file system (such as Linux and macOS) can run `sudo make install` to install ra2mes and ra3mes system-wide, preferably after building release or native builds. Use `sudo make uninstall` to remove them.
+> Unix-like operating systems (such as Linux and macOS) can run `sudo make install` to install ra2mes and ra3mes system-wide, preferably after building release or native builds. Use `sudo make uninstall` to remove them.
 >
 > If you need to rebuild the programs, run `make clean` or delete the `build` directory.
 
