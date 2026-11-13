@@ -35,7 +35,7 @@ To get the MES files, Windows users can run [TinkeDSi](https://github.com/R-YaTi
 
 Go to your output directory. The location of the MES files depends on the game:
 * *Pokémon Ranger: Shadows of Almia*: in the `data/message` directory
-* *Pokémon Ranger: Guardian Signs*: inside the `data_localize` ACF archives in the `data` directory. These are the first 275 (277 in the USA Kiosk Demo) files in the archives, by default with the extension `.bin`. Outside Japan, the `data_game_us` ACF archive also holds one MES file, with the staff credits: `9683.bin` in the European release, `9688.bin` in the USA release and `9831.bin` in the USA Kiosk Demo. You will need [acftool](https://github.com/SombrAbsol/acftool) to extract them
+* *Pokémon Ranger: Guardian Signs*: inside the `data_localize` ACF archives in the `data` directory. These are the first 275 (277 in the USA Kiosk Demo) files in the archives. Outside Japan, the `data_game_us` ACF archive also holds one MES file, with the staff credits: `9683.mes` in the European release, `9688.mes` in the USA release and `9831.mes` in the USA Kiosk Demo. You will need [acftool](https://github.com/SombrAbsol/acftool) to extract them
 
 ### Running ra2mes and ra3mes
 > [!IMPORTANT]
@@ -49,7 +49,7 @@ Go to your output directory. The location of the MES files depends on the game:
 
 By default, the output file is written next to the input file with the same name, replacing its extension with `.json` or `.mes`. However, you can optionally specify the output file of a single input file with `-o` or `--output`, or a directory to write the output files in with `--output-dir`, for instance:
 * `ra2mes in.mes -o out.json` will output the JSON file as `out.json`
-* `ra3mes in.json -o 0012.bin` will output the MES file as `0012.bin`, the name it had in its ACF archive
+* `ra3mes in.json -o 0012.mes` will output the MES file as `0012.mes`
 * `ra3mes indir --output-dir=outdir` or `ra3mes *.mes --output-dir=outdir` will write the output files in `outdir`, created if missing
 
 `-` as input reads the standard input, written to the standard output unless `-o` is given, and `-o -` writes to the standard output.
