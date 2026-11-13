@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 MES text file converters for *Pokémon Ranger: Shadows of Almia* and *Pokémon Ranger: Guardian Signs*.
 
-MES files are used to store texts in these two games. *Pokémon Ranger: Shadows of Almia* is the first game to use it, while *Pokémon Ranger: Guardian Signs* use a revised specification of this format, with different text storage and control characters. These tools allow you to convert MES files to JSON and vice versa. You can [download the latest builds](#download) or [build the programs from source](#building).
+MES files are used to store texts in these two games. *Pokémon Ranger: Shadows of Almia* is the first game to use it, while *Pokémon Ranger: Guardian Signs* uses a revised specification of this format, with different text storage and control characters. These tools allow you to convert MES files to JSON and vice versa. You can [download the latest builds](#download) or [build the programs from source](#building).
 
 For more information about the MES format, see [the documentation](/docs/mes.md).
 
@@ -21,7 +21,7 @@ For more information about the MES format, see [the documentation](/docs/mes.md)
 
 ## Usage
 ### Dumping the ROM
-You can dump your own *Pokémon Ranger: Guardian Signs* ROM from:
+You can dump your own *Pokémon Ranger: Shadows of Almia* or *Pokémon Ranger: Guardian Signs* ROM from:
 * [a console from the Nintendo DS or Nintendo 3DS family](https://dumping.guide/carts/nintendo/ds) (Game Card release)
 * [a Wii U](https://wiki.hacks.guide/wiki/Wii_U:VC_Extract) (Virtual Console release)
 
@@ -33,7 +33,7 @@ To get the MES files, Windows users can run [TinkeDSi](https://github.com/R-YaTi
 4. Once the process is complete, go to the `Fat Tools` tab, and fill in the first three fields with the requested files you just extracted (`fat_data.bin`, `fnt.bin` and `fat.bin`) and the fourth with the value from the previous `FAT Files Address` field
 5. Press the `Extract FAT Data!` button and choose where to save your files
 
-Go to your output directory. MES files location is different depending of the game:
+Go to your output directory. The location of the MES files depends on the game:
 * *Pokémon Ranger: Shadows of Almia*: in the `data/message` directory
 * *Pokémon Ranger: Guardian Signs*: inside the `data_localize` ACF archives in the `data` directory. These are the first 275 (277 in the USA Kiosk Demo) files in the archives, by default with the extension `.bin`. You will need [acftool](https://github.com/SombrAbsol/acftool) to extract them
 
@@ -43,16 +43,24 @@ Go to your output directory. MES files location is different depending of the ga
 >
 > Please use ra2mes for *Pokémon Ranger: Shadows of Almia*'s MES files only, and ra3mes for *Pokémon Ranger: Guardian Signs*' MES files only.
 
-* To convert a MES file to a JSON file, run `ra2mes --to-json in.mes` or `ra3mes --to-json in.mes`
-* To convert a JSON file to a MES file, run `ra2mes --to-mes in.json` or `ra3mes --to-mes in.json`
+* To convert a MES file to JSON, or a JSON file to MES, run `ra2mes <infile>` or `ra3mes <infile>`. The conversion is chosen from the contents of the input file, whatever its extension
+* To convert every MES and JSON file in a directory, run `ra2mes <indir>` or `ra3mes <indir>`. Other files are skipped
+* To convert several files or directories at once, list them, for instance `ra3mes a.mes b.mes` or `ra3mes *.mes`. Wildcards such as `*` and `?` also work on Windows
 
-By default, the output file has the same name as the input file, with the extension `.json` or `.mes` depending on the conversion option specified. However, you can optionally specify the output name, for instance:
-* `ra2mes --to-json in.mes out.json` will output the JSON file as `out.json`
-* `ra3mes --to-mes in.json out.mes` will output the MES file as `out.mes`
+By default, the output file is written next to the input file with the same name, replacing its extension with `.json` or `.mes`. However, you can optionally specify the output file of a single input file with `-o` or `--output`, or a directory to write the output files in with `--output-dir`, for instance:
+* `ra2mes in.mes -o out.json` will output the JSON file as `out.json`
+* `ra3mes in.json -o 0012.bin` will output the MES file as `0012.bin`, the name it had in its ACF archive
+* `ra3mes indir --output-dir=outdir` or `ra3mes *.mes --output-dir=outdir` will write the output files in `outdir`, created if missing
+
+`-` as input reads the standard input, written to the standard output unless `-o` is given, and `-o -` writes to the standard output.
 
 The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed MES files, which have the `.meslz` extension. ra2mes is therefore able to (de)compress these files during conversion:
-* `ra2mes --to-json in.meslz` will decompress `in.meslz` and output a JSON file
-* `ra2mes --to-meslz in.json` will compress `in.json` and output an LZ10-compressed MES file
+* `ra2mes in.meslz` will decompress `in.meslz` and output a JSON file
+* `ra2mes -z in.json` or `ra2mes --lz in.json` will compress the MES file and output it as `in.meslz`
+
+If an output file already exists, you will be asked whether to replace it. Run `ra3mes -y <in>` or `ra3mes --yes <in>` (with `<in>` being an input file or directory) to replace existing files without asking.
+
+Run `ra2mes -h`, `ra2mes --help`, `ra3mes -h` or `ra3mes --help` to list all the options.
 
 ## Building
 ### Dependencies
@@ -67,7 +75,7 @@ The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed
 > [!TIP]
 > Running `make` or `make release` will generate release builds. The downloadable releases are static builds generated using this recipe. If you want to generate native or debug builds, run `make native` or `make debug`. Native builds are optimized for your specific CPU for better performance but may not be compatible with other systems, while debug builds include debugging symbols that help diagnose issues but run slower.
 >
-> Unix-like operating systems (such as Linux and macOS) can run `sudo make install` to install ra2mes and ra3mes system-wide, preferably after building release or native builds. Use `sudo make uninstall` to remove them.
+> Unix-like operating systems (such as Linux and macOS) can run `sudo make install` to install ra2mes and ra3mes system-wide. It installs the programs already built, preferably release or native builds, or generates release builds first for those not built yet. Use `sudo make uninstall` to remove them.
 >
 > If you need to rebuild the programs, run `make clean` or delete the `build` directory.
 
@@ -75,4 +83,4 @@ The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed
 ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol).
 
 ## License
-ra2mes and ra3mes are free softwares. You can redistribute them and/or modify them under the [terms of the Expat License](/LICENSE) as published by the Massachusetts Institute of Technology.
+ra2mes and ra3mes are free software. You can redistribute them and/or modify them under the [terms of the Expat License](/LICENSE) as published by the Massachusetts Institute of Technology.

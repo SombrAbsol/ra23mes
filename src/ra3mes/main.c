@@ -1,235 +1,129 @@
 /*
- * Text converter for Pokémon Ranger: Guardian Signs.
+ * MES text file converter for Pokémon Ranger: Guardian Signs.
  *
  * SPDX-FileCopyrightText: 2026 SombrAbsol
  *
  * SPDX-License-Identifier: MIT
  */
 
-#include "utils.h"
+#include "cli.h"
+#include "fs.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
+
+#define HEADER_SIZE 8 // total size, then number of strings
 
 /*
- * Validate whether a buffer matches the expected Pokémon Ranger 3 MES file
- * structure.
+ * Read a 32-bit little-endian integer.
  */
-static bool is_valid_mes(const uint8_t *buf, size_t size)
+static uint32_t get_u32(const uint8_t *p)
 {
-    if (size < 8) { // minimum header size
-        return false;
-    }
-
-    uint32_t total = read_u32_le(buf); // total file size
-    uint32_t count = read_u32_le(buf + 4); // number of strings
-
-    // stored total size must match actual buffer size
-    if (total != size) {
-        return false;
-    }
-
-    // offset table must fit within file
-    if ((uint64_t)8 + (uint64_t)count * 4 > size) {
-        return false;
-    }
-
-    uint32_t header = 8 + count * 4;
-
-    for (uint32_t i = 0; i < count; i++) {
-        uint32_t off = read_u32_le(buf + 8 + i * 4);
-
-        // offset must point past the header and offset table
-        if (off < header) {
-            return false;
-        }
-
-        // offset must be within file bounds
-        if (off >= size) {
-            return false;
-        }
-
-        size_t max;
-        if (i + 1 < count) {
-            uint32_t next = read_u32_le(buf + 8 + (i + 1) * 4);
-
-            // offsets must be strictly increasing
-            if (next <= off) {
-                return false;
-            }
-
-            max = next - off;
-        } else {
-            max = size - off;
-        }
-
-        // string must have a null terminator within its bounds
-        if (strnlen((const char *)(buf + off), max) == max) {
-            return false;
-        }
-    }
-
-    return true;
+    return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16
+        | (uint32_t)p[3] << 24;
 }
 
 /*
- * Convert a Pokémon Ranger 3 MES file into JSON.
+ * Write a 32-bit little-endian integer.
  */
-static bool mes_to_json(const char *input, const char *output)
+static void put_u32(uint8_t *p, uint32_t v)
 {
-    size_t size;
-    unsigned char *buf = read_file(input, &size);
-    if (!buf) {
-        fprintf(stderr, "mes_to_json: failed to read '%s'\n", input);
-        goto error;
-    }
-
-    if (!is_valid_mes(buf, size)) {
-        fprintf(stderr, "mes_to_json: invalid MES file '%s'\n", input);
-        goto error;
-    }
-
-    uint32_t count = read_u32_le(buf + 4);
-
-    char **strings = calloc(count, sizeof(char *));
-    if (!strings) {
-        fprintf(stderr, "mes_to_json: memory allocation failed\n");
-        goto error;
-    }
-
-    // read each string via offset table
-    for (uint32_t i = 0; i < count; i++) {
-        uint32_t off = read_u32_le(buf + 8 + i * 4);
-
-        strings[i] = xstrdup((char *)(buf + off));
-        if (!strings[i]) {
-            fprintf(stderr,
-                "mes_to_json: memory allocation failed for string at index "
-                "%u\n",
-                i);
-            goto error_strings;
-        }
-    }
-
-    bool ok = write_json_strings(output, strings, count);
-
-    free_string_array(strings, count);
-    free(buf);
-    return ok;
-
-error_strings:
-    free_string_array(strings, count);
-error:
-    free(buf);
-    return false;
+    p[0] = (uint8_t)v;
+    p[1] = (uint8_t)(v >> 8);
+    p[2] = (uint8_t)(v >> 16);
+    p[3] = (uint8_t)(v >> 24);
 }
 
 /*
- * Convert a JSON file into Pokémon Ranger 3 MES format.
+ * Compute the number of padding bytes required to align 'n' to the next
+ * 4-byte boundary.
  */
-static bool json_to_mes(const char *input, const char *output)
+static size_t pad4(size_t n)
 {
-    uint32_t count;
-    char **strings = read_json_strings(input, &count);
-    if (!strings) {
-        fprintf(stderr, "json_to_mes: failed to parse JSON '%s'\n", input);
-        return false;
+    return (4 - (n & 3)) & 3;
+}
+
+/*
+ * Return the number of strings of a MES file, or -1 if it is not one.
+ */
+static int64_t check_mes(uint8_t **data, size_t *size)
+{
+    const uint8_t *mes = *data;
+    if (*size < HEADER_SIZE || get_u32(mes) != *size) {
+        return -1;
     }
 
-    uint32_t *offsets = malloc(count * sizeof(uint32_t));
-    if (!offsets) {
-        fprintf(stderr, "json_to_mes: memory allocation failed\n");
-        goto error;
+    // the offset table must fit within the file
+    uint32_t count = get_u32(mes + 4);
+    if (count > (*size - HEADER_SIZE) / 4) {
+        return -1;
     }
+    size_t tableEnd = HEADER_SIZE + (size_t)count * 4;
 
-    /*
-     * Layout: 8-byte header + offset table containing count * 4 bytes,
-     * followed by string data.
-     */
-    uint32_t header = 8 + count * 4;
-    uint32_t cur = header;
-
-    // compute absolute offsets for each string
-    for (uint32_t i = 0; i < count; i++) {
-        offsets[i] = cur;
-        uint32_t len = (uint32_t)strlen(strings[i]) + 1;
-        cur += len + pad4(len);
-    }
-
-    FILE *f = xfopen(output, "wb");
-    if (!f) {
-        fprintf(stderr, "json_to_mes: cannot open '%s'\n", output);
-        goto error;
-    }
-
-    unsigned char b[4];
-
-    // write header
-    write_u32_le(b, cur);
-    if (fwrite(b, 1, 4, f) != 4) {
-        fprintf(stderr,
-            "json_to_mes: failed to write total size to '%s'\n",
-            output);
-        goto error_io;
-    }
-    write_u32_le(b, count);
-    if (fwrite(b, 1, 4, f) != 4) {
-        fprintf(stderr,
-            "json_to_mes: failed to write string count to '%s'\n",
-            output);
-        goto error_io;
-    }
-
-    // write offset table
-    for (uint32_t i = 0; i < count; i++) {
-        write_u32_le(b, offsets[i]);
-        if (fwrite(b, 1, 4, f) != 4) {
-            fprintf(stderr, "json_to_mes: failed to write offset table\n");
-            goto error_io;
+    // strings follow the table in order, each null-terminated before the next
+    for (uint32_t i = 0; i < count; ++i) {
+        size_t off = get_u32(mes + HEADER_SIZE + i * 4);
+        size_t end
+            = i + 1 < count ? get_u32(mes + HEADER_SIZE + i * 4 + 4) : *size;
+        if (off < tableEnd || end <= off || end > *size
+            || !memchr(mes + off, 0, end - off)) {
+            return -1;
         }
     }
+    return count;
+}
 
-    // write string data
-    for (uint32_t i = 0; i < count; i++) {
-        uint32_t len = (uint32_t)strlen(strings[i]) + 1;
-        if (fwrite(strings[i], 1, len, f) != len) {
-            fprintf(stderr,
-                "json_to_mes: failed to write string %u to '%s'\n",
-                i,
-                output);
-            goto error_io;
-        }
+/*
+ * Point 'strings' to the strings of a MES file accepted by check_mes.
+ */
+static void split_mes(const uint8_t *data, const char **strings)
+{
+    uint32_t count = get_u32(data + 4);
+    for (uint32_t i = 0; i < count; ++i) {
+        strings[i] = (const char *)data + get_u32(data + HEADER_SIZE + i * 4);
+    }
+}
 
-        // pad to 4-byte boundary
-        static const unsigned char zero_pad[4] = { 0 };
-        uint32_t pad = pad4(len);
-        if (pad && fwrite(zero_pad, 1, pad, f) != pad) {
-            fprintf(stderr,
-                "json_to_mes: failed to write padding for string %u to '%s'\n",
-                i,
-                output);
-            goto error_io;
-        }
+/*
+ * Build a MES file of 'count' strings.
+ */
+static uint8_t *build_mes(
+    const char *const *strings, uint32_t count, bool lz, size_t *outSize)
+{
+    (void)lz; // never compressed in this game
+
+    // the offset table, then each string with its null terminator, padded
+    size_t size = HEADER_SIZE + (size_t)count * 4;
+    for (uint32_t i = 0; i < count; ++i) {
+        size_t len = strlen(strings[i]) + 1;
+        size += len + pad4(len);
+    }
+    if (size > UINT32_MAX) {
+        fprintf(stderr, "%s: too much text for a MES file\n", programName);
+        return NULL;
     }
 
-    fclose(f);
-    free(offsets);
-    free_string_array(strings, count);
-    return true;
+    uint8_t *mes = calloc(size, 1); // zeroed, padding included
+    if (!mes) {
+        fprintf(stderr, "%s: memory allocation failed\n", programName);
+        return NULL;
+    }
+    put_u32(mes, (uint32_t)size);
+    put_u32(mes + 4, count);
 
-error_io:
-    fclose(f);
-error:
-    free(offsets);
-    free_string_array(strings, count);
-    return false;
+    size_t off = HEADER_SIZE + (size_t)count * 4; // absolute string offset
+    for (uint32_t i = 0; i < count; ++i) {
+        size_t len = strlen(strings[i]) + 1;
+        put_u32(mes + HEADER_SIZE + i * 4, (uint32_t)off);
+        memcpy(mes + off, strings[i], len);
+        off += len + pad4(len);
+    }
+
+    *outSize = size;
+    return mes;
 }
 
 /*
@@ -237,64 +131,13 @@ error:
  */
 int main(int argc, char **argv)
 {
-#ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8); // ensure UTF-8 output on Windows
-#endif
-
-    if (argc >= 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h"))) {
-        printf("ra3mes - MES text file converter for Pokémon Ranger: Guardian "
-               "Signs\n");
-        printf("Copyright (c) 2026 SombrAbsol\n\n");
-        printf("Usage:\n");
-        printf("  %s --to-json <in.mes>  [out.json]  convert MES to JSON\n",
-            argv[0]);
-        printf("  %s --to-mes  <in.json> [out.mes]   convert JSON to MES\n",
-            argv[0]);
-        printf(
-            "  %s -h|--help                       show this help\n", argv[0]);
-        return EXIT_SUCCESS;
-    }
-
-    if (argc != 3 && argc != 4) {
-        fprintf(stderr, "Invalid arguments\n");
-        fprintf(stderr, "Try '%s --help' for more information.\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    if (!file_exists(argv[2])) {
-        fprintf(stderr, "Invalid path: '%s'\n", argv[2]);
-        return EXIT_FAILURE;
-    }
-
-    char *output = NULL;
-    bool ok = false;
-
-    const char *input = argv[2];
-    const char *outarg = (argc == 4) ? argv[3] : NULL;
-
-    if (strcmp(argv[1], "--to-json") == 0) {
-        output = outarg ? xstrdup(outarg) : make_output_path(input, ".json");
-
-        if (!output) {
-            return EXIT_FAILURE;
-        }
-
-        ok = mes_to_json(input, output);
-
-    } else if (strcmp(argv[1], "--to-mes") == 0) {
-        output = outarg ? xstrdup(outarg) : make_output_path(input, ".mes");
-
-        if (!output) {
-            return EXIT_FAILURE;
-        }
-
-        ok = json_to_mes(input, output);
-
-    } else {
-        fprintf(stderr, "Unknown option: '%s'\n", argv[1]);
-        fprintf(stderr, "Try '%s --help' for more information.\n", argv[0]);
-    }
-
-    free(output);
-    return ok ? EXIT_SUCCESS : EXIT_FAILURE;
+    static const MesFormat format = {
+        "ra3mes",
+        "Pokémon Ranger: Guardian Signs",
+        false,
+        check_mes,
+        split_mes,
+        build_mes,
+    };
+    return mes_main(argc, argv, &format);
 }

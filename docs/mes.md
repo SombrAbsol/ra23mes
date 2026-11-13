@@ -48,7 +48,7 @@ Offset table begins at byte `0x08` and count entries. Offsets are absolute, rela
 {
   u32 offset[0]
   u32 offset[1]
-  // …
+  // ...
   u32 offset[n-1]
 }
 ```
@@ -81,7 +81,7 @@ Unless constants are specified, X is a numeric variable, whose action associated
   * `0` Empty
   * `1` "The wild" (default)
   * `2` "attacked!"
-* `[O:XX]` Display image 
+* `[O:XX]` Display image
   * `04` Styler Menu button icon
   * `05` Change Screen button icon
 * `[P:X]` Pokémon name
@@ -112,7 +112,7 @@ Unless constants are specified, X is a numeric variable, whose action associated
 * `[M]` Player name, remove first character on the right
 * `[M:]` Player name
 * `[N:X]` Player's counterpart name
-* `[O:XX]` Display image 
+* `[O:XX]` Display image
   * `00` Speech bubble with ellipsis
   * `01` Cut Field Move icon
   * `02` Recharge Field Move icon
