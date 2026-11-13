@@ -47,10 +47,12 @@ static size_t pad4(size_t n)
 }
 
 /*
- * Return the number of strings of a MES file, or -1 if it is not one.
+ * Return the number of strings of a MES file, or -1 if it is not one, never
+ * compressed for this game.
  */
-static int64_t check_mes(uint8_t **data, size_t *size)
+static int64_t check_mes(uint8_t **data, size_t *size, bool *compressed)
 {
+    *compressed = false;
     const uint8_t *mes = *data;
     if (*size < HEADER_SIZE || get_u32(mes) != *size) {
         return -1;
@@ -91,10 +93,8 @@ static void split_mes(const uint8_t *data, const char **strings)
  * Build a MES file of 'count' strings.
  */
 static uint8_t *build_mes(
-    const char *const *strings, uint32_t count, bool lz, size_t *outSize)
+    const char *const *strings, uint32_t count, size_t *outSize)
 {
-    (void)lz; // never compressed in this game
-
     // the offset table, then each string with its null terminator, padded
     size_t size = HEADER_SIZE + (size_t)count * 4;
     for (uint32_t i = 0; i < count; ++i) {
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
     static const MesFormat format = {
         "ra3mes",
         "Pokémon Ranger: Guardian Signs",
-        false,
+        NULL,
         check_mes,
         split_mes,
         build_mes,

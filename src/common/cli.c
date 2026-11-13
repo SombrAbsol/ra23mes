@@ -67,6 +67,7 @@ typedef struct {
     uint8_t *data; // contents, decompressed for a compressed MES file
     size_t size;
     int64_t count; // number of strings of a MES file, -1 for a JSON file
+    bool compressed; // a MES file read LZ10-compressed
 } FileJob;
 
 static const MesFormat *mes; // format handled by the program
@@ -134,11 +135,21 @@ static int load_file(const char *in, bool inDir, FileJob *job)
     }
 
     // MES files are told first, as their first bytes may pass for JSON
-    job->count = mes->check(&job->data, &job->size);
+    job->count = mes->check(&job->data, &job->size, &job->compressed);
     if (job->count < 0 && !json_detect((const char *)job->data, job->size)) {
         if (!inDir) {
             fprintf(
                 stderr, "%s: '%s' is not a MES or JSON file\n", mes->name, in);
+        }
+        free(job->data);
+        return inDir ? 0 : -1;
+    }
+
+    // with -z, a MES file is compressed, unless it already is
+    if (lz && job->compressed) {
+        if (!inDir) {
+            fprintf(
+                stderr, "%s: '%s' is already LZ10-compressed\n", mes->name, in);
         }
         free(job->data);
         return inDir ? 0 : -1;
@@ -158,12 +169,13 @@ static bool plan_output(const char *out, const char *dir, FileJob *job)
 
     /*
      * A named output file is used as is, else the input's name, extension
-     * replaced: MES files become JSON files, and JSON files MES files.
+     * replaced: MES files become JSON files, and JSON files MES files, both
+     * becoming MESLZ files with -z.
      */
     const char *name = path_basename(in);
     const char *dot = strrchr(name, '.');
     size_t len = dot && dot != name ? (size_t)(dot - name) : strlen(name);
-    const char *ext = job->count >= 0 ? ".json" : lz ? ".meslz" : ".mes";
+    const char *ext = lz ? ".meslz" : job->count >= 0 ? ".json" : ".mes";
     char base[PATH_SIZE];
     if ((size_t)snprintf(base, sizeof(base), "%.*s%s", (int)len, name, ext)
         >= sizeof(base)) {
@@ -204,7 +216,14 @@ static bool convert_file(const FileJob *job)
     size_t outSize = 0;
     bool ok = false;
 
-    if (job->count >= 0) {
+    // with -z, a MES file is compressed as read, unchanged
+    if (job->count >= 0 && lz) {
+        count = (uint32_t)job->count;
+        out = mes->compress(job->data, job->size, &outSize);
+        if (!out) {
+            goto done; // reason already printed
+        }
+    } else if (job->count >= 0) {
         count = (uint32_t)job->count;
         strings = malloc((count ? count : 1) * sizeof(*strings));
         if (strings) {
@@ -227,9 +246,19 @@ static bool convert_file(const FileJob *job)
                 err);
             goto done;
         }
-        out = mes->build(strings, count, lz, &outSize);
+        out = mes->build(strings, count, &outSize);
         if (!out) {
             goto done; // reason already printed
+        }
+
+        // with -z, the MES file built is compressed
+        if (lz) {
+            size_t size = outSize;
+            uint8_t *packed = mes->compress(out, size, &outSize);
+            free(out);
+            if (!(out = packed)) {
+                goto done; // reason already printed
+            }
         }
     }
 
@@ -259,7 +288,7 @@ static void print_help(void)
 {
     printf("Usage: %s [OPTION]... INPUT...\n", mes->name);
     printf("Convert %s MES text files to JSON and back.\n\n", mes->game);
-    if (mes->lz) {
+    if (mes->compress) {
         printf("INPUT is a MES, MESLZ or JSON file, or a directory of them. "
                "MES and MESLZ\n"
                "files are converted to JSON, and JSON files to MES, written "
@@ -286,9 +315,11 @@ static void print_help(void)
         "                         for stdout\n"
         "      --output-dir=DIR   write the outputs in DIR, created if "
         "missing\n");
-    if (mes->lz) {
+    if (mes->compress) {
         printf("  -z, --lz               compress the MES files written with "
-               "LZ10 (.meslz)\n");
+               "LZ10 (.meslz), and\n"
+               "                         the MES files given instead of "
+               "converting them\n");
     }
     printf("  -y, --yes              replace existing output files without "
            "asking\n"
@@ -345,7 +376,7 @@ int mes_main(int argc, char **argv, const MesFormat *format)
         { 0, "version", false, NULL },
         { 'z', "lz", false, &lz }, // last, known by LZ10 formats only
     };
-    size_t known = sizeof(options) / sizeof(*options) - !mes->lz;
+    size_t known = sizeof(options) / sizeof(*options) - !mes->compress;
     const char *out = NULL, *outDir = NULL;
     bool operands = false; // past "--"
     int n = 0; // operands, moved to argv[1] onwards, never past argv[i]

@@ -57,6 +57,7 @@ By default, the output file is written next to the input file with the same name
 The European release of *Pokémon Ranger: Shadows of Almia* uses LZ10-compressed MES files, which have the `.meslz` extension. ra2mes is therefore able to (de)compress these files during conversion:
 * `ra2mes in.meslz` will decompress `in.meslz` and output a JSON file
 * `ra2mes -z in.json` or `ra2mes --lz in.json` will compress the MES file and output it as `in.meslz`
+* `ra2mes -z in.mes` will compress `in.mes` and output it as `in.meslz`
 
 If an output file already exists, you will be asked whether to replace it. Run `ra3mes -y <in>` or `ra3mes --yes <in>` (with `<in>` being an input file or directory) to replace existing files without asking.
 

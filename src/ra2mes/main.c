@@ -76,11 +76,13 @@ static int64_t parse_mes(const uint8_t *data, size_t size)
 
 /*
  * Return the number of strings of a MES file, or -1 if it is not one. A
- * compressed MES file is replaced in '*data' by its decompressed contents.
+ * compressed MES file is replaced in '*data' by its decompressed contents,
+ * '*compressed' telling which.
  */
-static int64_t check_mes(uint8_t **data, size_t *size)
+static int64_t check_mes(uint8_t **data, size_t *size, bool *compressed)
 {
     int64_t count = parse_mes(*data, *size);
+    *compressed = false;
     if (count >= 0) {
         return count;
     }
@@ -96,6 +98,7 @@ static int64_t check_mes(uint8_t **data, size_t *size)
     free(*data);
     *data = dec;
     *size = decSize;
+    *compressed = true;
     return count;
 }
 
@@ -113,10 +116,10 @@ static void split_mes(const uint8_t *data, const char **strings)
 }
 
 /*
- * Build a MES file of 'count' strings, LZ10-compressed if 'lz'.
+ * Build a MES file of 'count' strings.
  */
 static uint8_t *build_mes(
-    const char *const *strings, uint32_t count, bool lz, size_t *outSize)
+    const char *const *strings, uint32_t count, size_t *outSize)
 {
     // each string is stored with its null terminator, padded to 4 bytes
     size_t size = HEADER_SIZE;
@@ -145,14 +148,8 @@ static uint8_t *build_mes(
         memcpy(p + 4, strings[i], len);
         p += 4 + block;
     }
-
-    if (!lz) {
-        *outSize = size;
-        return mes;
-    }
-    uint8_t *packed = lz10_compress(mes, size, outSize);
-    free(mes);
-    return packed;
+    *outSize = size;
+    return mes;
 }
 
 /*
@@ -163,7 +160,7 @@ int main(int argc, char **argv)
     static const MesFormat format = {
         "ra2mes",
         "Pokémon Ranger: Shadows of Almia",
-        true,
+        lz10_compress,
         check_mes,
         split_mes,
         build_mes,
