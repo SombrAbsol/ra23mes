@@ -12,7 +12,7 @@ MES text file converters for *Pokémon Ranger: Shadows of Almia* and *Pokémon R
 
 MES files are used to store texts in these two games. *Pokémon Ranger: Shadows of Almia* is the first game to use it, while *Pokémon Ranger: Guardian Signs* uses a revised specification of this format, with different text storage and control characters. These tools allow you to convert MES files to JSON and vice versa. You can [download the latest builds](#download) or [build the programs from source](#building).
 
-For more information about the MES format, see [the documentation](/docs/mes.md).
+For more information about the MES format, see [the documentation](/docs/mes.md). To convert the texts of the first *Pokémon Ranger* game, see [ra1mes](https://github.com/SombrAbsol/ra1mes).
 
 ## Download
 |        | Linux | macOS | Windows |
@@ -35,7 +35,7 @@ To get the MES files, Windows users can run [TinkeDSi](https://github.com/R-YaTi
 
 Go to your output directory. The location of the MES files depends on the game:
 * *Pokémon Ranger: Shadows of Almia*: in the `data/message` directory
-* *Pokémon Ranger: Guardian Signs*: inside the `data_localize` ACF archives in the `data` directory. These are the first 275 (277 in the USA Kiosk Demo) files in the archives, by default with the extension `.bin`. You will need [acftool](https://github.com/SombrAbsol/acftool) to extract them
+* *Pokémon Ranger: Guardian Signs*: inside the `data_localize` ACF archives in the `data` directory. These are the first 275 (277 in the USA Kiosk Demo) files in the archives, by default with the extension `.bin`. Outside Japan, the `data_game_us` ACF archive also holds one MES file, with the staff credits: `9683.bin` in the European release, `9688.bin` in the USA release and `9831.bin` in the USA Kiosk Demo. You will need [acftool](https://github.com/SombrAbsol/acftool) to extract them
 
 ### Running ra2mes and ra3mes
 > [!IMPORTANT]
