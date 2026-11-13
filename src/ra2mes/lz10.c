@@ -1,5 +1,5 @@
 /*
- * LZ10 compression handler.
+ * LZ10 compression and decompression.
  *
  * SPDX-FileCopyrightText: 2026 SombrAbsol
  *
@@ -109,7 +109,7 @@ invalid:
 uint8_t *lz10_compress(const uint8_t *src, size_t srcSize, size_t *outSize)
 {
     if (srcSize > 0xFFFFFF) {
-        fprintf(stderr, "%s: MES file too large to compress\n", programName);
+        fprintf(stderr, "%s: file too large to compress\n", programName);
         return NULL;
     }
 

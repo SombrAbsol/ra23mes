@@ -95,9 +95,9 @@ PRINTF_LIKE static int usage_error(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    fprintf(stderr, "%s: ", mes->name);
+    fprintf(stderr, "%s: ", programName);
     vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\nTry '%s --help' for more information.\n", mes->name);
+    fprintf(stderr, "\nTry '%s --help' for more information.\n", programName);
     va_end(ap);
     return EXIT_FAILURE;
 }
@@ -126,7 +126,7 @@ static int load_file(const char *in, bool inDir, FileJob *job)
 {
     if ((size_t)snprintf(job->in, sizeof(job->in), "%s", in)
         >= sizeof(job->in)) {
-        fprintf(stderr, "%s: path too long: '%s'\n", mes->name, in);
+        fprintf(stderr, "%s: path too long: '%s'\n", programName, in);
         return -1;
     }
     job->data = read_file(in, &job->size);
@@ -138,8 +138,10 @@ static int load_file(const char *in, bool inDir, FileJob *job)
     job->count = mes->check(&job->data, &job->size, &job->compressed);
     if (job->count < 0 && !json_detect((const char *)job->data, job->size)) {
         if (!inDir) {
-            fprintf(
-                stderr, "%s: '%s' is not a MES or JSON file\n", mes->name, in);
+            fprintf(stderr,
+                "%s: '%s' is not a MES or JSON file\n",
+                programName,
+                in);
         }
         free(job->data);
         return inDir ? 0 : -1;
@@ -148,8 +150,10 @@ static int load_file(const char *in, bool inDir, FileJob *job)
     // with -z, a MES file is compressed, unless it already is
     if (lz && job->compressed) {
         if (!inDir) {
-            fprintf(
-                stderr, "%s: '%s' is already LZ10-compressed\n", mes->name, in);
+            fprintf(stderr,
+                "%s: '%s' is already LZ10-compressed\n",
+                programName,
+                in);
         }
         free(job->data);
         return inDir ? 0 : -1;
@@ -179,7 +183,7 @@ static bool plan_output(const char *out, const char *dir, FileJob *job)
     char base[PATH_SIZE];
     if ((size_t)snprintf(base, sizeof(base), "%.*s%s", (int)len, name, ext)
         >= sizeof(base)) {
-        fprintf(stderr, "%s: path too long: '%s'\n", mes->name, in);
+        fprintf(stderr, "%s: path too long: '%s'\n", programName, in);
         return false;
     }
 
@@ -198,7 +202,7 @@ static bool plan_output(const char *out, const char *dir, FileJob *job)
                    in,
                    base)
         >= sizeof(job->out)) { // next to the input, in the same directory
-        fprintf(stderr, "%s: path too long: '%s'\n", mes->name, in);
+        fprintf(stderr, "%s: path too long: '%s'\n", programName, in);
         return false;
     }
     return true;
@@ -231,7 +235,7 @@ static bool convert_file(const FileJob *job)
             out = (uint8_t *)json_write(strings, count, &outSize);
         }
         if (!out) {
-            fprintf(stderr, "%s: memory allocation failed\n", mes->name);
+            fprintf(stderr, "%s: memory allocation failed\n", programName);
             goto done;
         }
     } else {
@@ -240,7 +244,7 @@ static bool convert_file(const FileJob *job)
         if (err) {
             fprintf(stderr,
                 "%s: '%s': line %d: %s\n",
-                mes->name,
+                programName,
                 job->in,
                 line,
                 err);
@@ -286,7 +290,7 @@ done:
  */
 static void print_help(void)
 {
-    printf("Usage: %s [OPTION]... INPUT...\n", mes->name);
+    printf("Usage: %s [OPTION]... INPUT...\n", programName);
     printf("Convert %s MES text files to JSON and back.\n\n", mes->game);
     if (mes->compress) {
         printf("INPUT is a MES, MESLZ or JSON file, or a directory of them. "
@@ -333,7 +337,7 @@ static void print_help(void)
 static void print_version(void)
 {
     printf("%s %s-UTC-%s%s%s\n",
-        mes->name,
+        programName,
         BUILD_UTC,
         BUILD_OS,
         BUILD_RECIPE,
@@ -477,7 +481,7 @@ int mes_main(int argc, char **argv, const MesFormat *format)
     }
     bool outIsDir = false;
     if (!failed && outDir && path_exists(outDir, &outIsDir) && !outIsDir) {
-        fprintf(stderr, "%s: '%s' is not a directory\n", mes->name, outDir);
+        fprintf(stderr, "%s: '%s' is not a directory\n", programName, outDir);
         failed = true;
     }
     if (failed || (outDir && !outIsDir && !mkdir_dir(outDir))) {
@@ -504,7 +508,7 @@ int mes_main(int argc, char **argv, const MesFormat *format)
         const char *in = inputs[d];
         isDir = false;
         if (strcmp(in, "-") && !path_exists(in, &isDir)) {
-            fprintf(stderr, "%s: cannot access '%s'\n", mes->name, in);
+            fprintf(stderr, "%s: cannot access '%s'\n", programName, in);
             failed = true;
             continue;
         }
@@ -512,13 +516,14 @@ int mes_main(int argc, char **argv, const MesFormat *format)
         size_t listed = 1;
         char **list = isDir ? list_files(in, &listed) : NULL;
         if (isDir && !list) {
-            fprintf(stderr, "%s: cannot open directory '%s'\n", mes->name, in);
+            fprintf(
+                stderr, "%s: cannot open directory '%s'\n", programName, in);
             failed = true;
             continue;
         }
         FileJob *grown = realloc(jobs, sizeof(*jobs) * (planned + listed + 1));
         if (!grown) {
-            fprintf(stderr, "%s: memory allocation failed\n", mes->name);
+            fprintf(stderr, "%s: memory allocation failed\n", programName);
             failed = true;
         }
         jobs = grown ? grown : jobs;
@@ -548,7 +553,7 @@ int mes_main(int argc, char **argv, const MesFormat *format)
             if (j < planned) {
                 fprintf(stderr,
                     "%s: '%s' would overwrite the output of '%s'\n",
-                    mes->name,
+                    programName,
                     job->in,
                     jobs[j].in);
                 failed = true;

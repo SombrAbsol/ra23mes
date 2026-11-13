@@ -1,5 +1,5 @@
 /*
- * LZ10 compression handler.
+ * LZ10 compression and decompression.
  *
  * SPDX-FileCopyrightText: 2026 SombrAbsol
  *

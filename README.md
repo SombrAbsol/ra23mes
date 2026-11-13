@@ -81,7 +81,7 @@ Run `ra2mes -h`, `ra2mes --help`, `ra3mes -h` or `ra3mes --help` to list all the
 > If you need to rebuild the programs, run `make clean` or delete the `build` directory.
 
 ## Credits
-ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol).
+* ra2mes and ra3mes by [SombrAbsol](https://github.com/SombrAbsol)
 
 ## License
 ra2mes and ra3mes are free software. You can redistribute them and/or modify them under the [terms of the Expat License](/LICENSE) as published by the Massachusetts Institute of Technology.
